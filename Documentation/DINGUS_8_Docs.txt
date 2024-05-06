@@ -1,7 +1,7 @@
 Little Endian (0xFFFE -> |0xFE|0xFF|)
 8-bit data bus
 16-bit address bus
-8-bit registers: (max value is 0xFF anything over will wrap around))
+8-bit registers: (max value is 0xFF anything over will wrap around)
 A-+
 B |-> General purpose registers.
 C |
@@ -56,7 +56,7 @@ Instructions:
 0x10: PSHI (IMM8):
 	Set data at SP to IMM8.
 	Decrement SP.
-0x11: PSHR (REG):
+x11: PSHR (REG):
 	Set data at SP to the value of REG.
 	Decrement SP.
 0x12: POP (REG): [Z]
