@@ -2,6 +2,7 @@ Little Endian (0xFFFE -> |0xFE|0xFF|)
 8-bit data bus
 16-bit address bus
 8-bit registers: (max value is 0xFF anything over will wrap around)
+
 A-+
 B |-> General purpose registers.
 C |
@@ -10,6 +11,7 @@ SP (prepended with 00 to get the address stored)
 S (status)
 16-bit register:
 IP (16-bit, holds current address)
+
 Access up-to 0xFFFF (2^16) in memory
 0xFFFF +—————+
        |START| (Where to start executing.)
@@ -18,6 +20,7 @@ Access up-to 0xFFFF (2^16) in memory
 0x00FF +—————+
        |STACK| (0x0000 -> 0x00FF)
 0x0000 +—————+
+
  7 6 5 4 3 2 1 0
 +-+-+-+-+-+-+-+-+
 |H| | |C|P|N|Z|O|
@@ -30,6 +33,13 @@ Access up-to 0xFFFF (2^16) in memory
 	0x5: Unused
 	0x6: Unused
 	0x7: Halt, set when HLT (0x14) is called, clock will be ignored.
+
+Assembly syntax:
+    Addresses prepended with @ and written in hex.
+    Data prepended with $ and written in hex.
+    Registers prepended with %.
+    Comments indicated with //.
+
 Instructions:
 -NOP——————————————————————————————————————————————————————————————————
 0x00: NOP: Do nothing.
@@ -40,8 +50,8 @@ Instructions:
 0x04: MOVD (IMM8): Copy IMM8 into D [Z].
 0x05: CPY (REG)A, (REG)B: Copy A’s data to B [Z].
 -MEMORY———————————————————————————————————————————————————————————————
-0x06: LDR (REG8), (IMM16)ADR: Copy data to REG from ADR [Z].
-0x07: STR (IMM16)ADR, (REG8): Copy data from REG to ADR.
+0x06: STR (REG8), (IMM16)ADR: Copy data from REG to ADR [Z].
+0x07: LDR (IMM16)ADR, (REG8): Copy data from ADR to REG [Z].
 —MATH—————————————————————————————————————————————————————————————————
 0x08: ADD (REG8)A, (REG8)B: Add B to A and store in A [C, Z].
 0x09: SUB (REG8)A, (REG8)B: Subtract B from A and store in A [Z, N].

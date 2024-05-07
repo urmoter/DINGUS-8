@@ -28,7 +28,7 @@ void mov_op(memory RAM, byte op) {
     switch (op) {
         case 0x01: {
             byte data = getop(RAM);
-            fprintf(stdout, "MOVA 0x%02X\n", data);
+            fprintf(stdout, "MOVA $%02X\n", data);
             (*A_p) = data;
             if (A == 0x00) {
                 (*S_p) = S | 0x02;
@@ -37,7 +37,7 @@ void mov_op(memory RAM, byte op) {
         }
         case 0x02: {
             byte data = getop(RAM);
-            fprintf(stdout, "MOVB 0x%02X\n", data);
+            fprintf(stdout, "MOVB $%02X\n", data);
             (*B_p) = data;
             if (B == 0x00) {
                 (*S_p) = S | 0x02;
@@ -72,14 +72,14 @@ void mov_op(memory RAM, byte op) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "CPY A, A");
+                            fprintf(stdout, "CPY %%A, %%A");
                             if (A == 0x00) {
                                 (*S_p) = S | 0x02;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "CPY A, B");
+                            fprintf(stdout, "CPY %%A, %%B");
                             (*B_p) = A;
                             if (B == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -87,7 +87,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "CPY A, C");
+                            fprintf(stdout, "CPY %%A, %%C");
                             (*C_p) = A;
                             if (C == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -95,7 +95,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "CPY A, D");
+                            fprintf(stdout, "CPY %%A, %%D");
                             (*D_p) = A;
                             if (D == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -112,7 +112,7 @@ void mov_op(memory RAM, byte op) {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "CPY B, A");
+                            fprintf(stdout, "CPY %%B, %%A");
                             (*A_p) = B;
                             if (A == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -120,14 +120,14 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "CPY B, B");
+                            fprintf(stdout, "CPY %%B, %%B");
                             if (B == 0x00) {
                                 (*S_p) = S | 0x02;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "CPY B, C");
+                            fprintf(stdout, "CPY %%B, %%C");
                             (*C_p) = B;
                             if (C == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -135,7 +135,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "CPY B, D");
+                            fprintf(stdout, "CPY %%B, %%D");
                             (*D_p) = B;
                             if (D == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -152,7 +152,7 @@ void mov_op(memory RAM, byte op) {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "CPY C, A");
+                            fprintf(stdout, "CPY %%C, %%A");
                             (*A_p) = C;
                             if (A == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -160,7 +160,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "CPY C, B");
+                            fprintf(stdout, "CPY %%C, %%B");
                             (*B_p) = C;
                             if (B == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -168,14 +168,14 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "CPY C, C");
+                            fprintf(stdout, "CPY %%C, %%C");
                             if (C == 0x00) {
                                 (*S_p) = S | 0x02;
                             }
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "CPY C, D");
+                            fprintf(stdout, "CPY %%C, %%D");
                             (*D_p) = C;
                             if (D == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -192,7 +192,7 @@ void mov_op(memory RAM, byte op) {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "CPY D, A");
+                            fprintf(stdout, "CPY %%D, %%A");
                             (*A_p) = D;
                             if (A == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -200,7 +200,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "CPY D, B");
+                            fprintf(stdout, "CPY %%D, %%B");
                             (*B_p) = D;
                             if (B == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -208,7 +208,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "CPY D, C");
+                            fprintf(stdout, "CPY %%D, %%C");
                             (*C_p) = D;
                             if (C == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -216,7 +216,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "CPY D, D");
+                            fprintf(stdout, "CPY %%D, %%D");
                             if (D == 0x00) {
                                 (*S_p) = S | 0x02;
                             }
@@ -234,6 +234,114 @@ void mov_op(memory RAM, byte op) {
                 }
             }
             break;
+        }
+    }
+}
+void mem_op(memory RAM, byte op) {
+    switch (op) {
+        case 0x06: {
+            // Source Register
+            byte Reg = getop(RAM);
+            // Halves of the address
+            byte LSB = getop(RAM);
+            byte MSB = getop(RAM);
+             // shift the MSB 8 bits left so (--------)00000000 is MSB
+            MSB = MSB << 8;
+            // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
+            address addr = MSB + LSB;
+
+            switch (Reg) {
+                case 0x00: {
+                    fprintf("STR %%A, @%04X\n", addr);
+                    write(RAM, addr, A);
+                    if (A == 0x00) {
+                        (*S_p) = S | 0x02;
+                    }
+                    break;
+                }
+                case 0x01: {
+                    fprintf("STR %%B, @%04X\n", addr);
+                    write(RAM, addr, B);
+                    if (B == 0x00) {
+                        (*S_p) = S | 0x02;
+                    }
+                    break;
+                }
+                case 0x02: {
+                    fprintf("STR %%C, @%04X\n", addr);
+                    write(RAM, addr, C);
+                    if (C == 0x00) {
+                        (*S_p) = S | 0x02;
+                    }
+                    break;
+                }
+                case 0x03: {
+                    fprintf("STR %%D, @%04X\n", addr);
+                    write(RAM, addr, D);
+                    if (D == 0x00) {
+                        (*S_p) = S | 0x02;
+                    }
+                    break;
+                }
+
+                default: {
+                    fprintf(stdout, "Invalid register, 0x%02X!\n", Reg);
+                    break;
+                }
+            }
+            break;
+        }
+
+        case 0x07: {
+            // Halves of the address
+            byte LSB = getop(RAM);
+            byte MSB = getop(RAM);
+             // shift the MSB 8 bits left so (--------)00000000 is MSB
+            MSB = MSB << 8;
+            // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
+            address addr = MSB + LSB;
+            // Destination Register
+            byte Reg = getop(RAM);
+
+            switch (Reg) {
+                case 0x00: {
+                    fprintf("LDR @%04X, %%A\n", addr);
+                    (*A_p) = read(RAM, addr);
+                    if (A == 0x00) {
+                        (*S_p) = S | 0x02;
+                    }
+                    break;
+                }
+                case 0x01: {
+                    fprintf("LDR @%04X, %%B\n", addr);
+                    (*B_p) = read(RAM, addr);
+                    if (B == 0x00) {
+                        (*S_p) = S | 0x02;
+                    }
+                    break;
+                }
+                case 0x02: {
+                    fprintf("LDR @%04X, %%C\n", addr);
+                    (*C_p) = read(RAM, addr);
+                    if (C == 0x00) {
+                        (*S_p) = S | 0x02;
+                    }
+                    break;
+                }
+                case 0x03: {
+                    fprintf("LDR @%04X, %%D\n", addr);
+                    (*D_p) = read(RAM, addr);
+                    if (D == 0x00) {
+                        (*S_p) = S | 0x02;
+                    }
+                    break;
+                }
+
+                default: {
+                    fprintf(stdout, "Invalid register, 0x%02X!\n", Reg);
+                    break;
+                }
+            }
         }
     }
 }
