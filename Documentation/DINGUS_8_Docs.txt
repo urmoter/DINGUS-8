@@ -53,15 +53,14 @@ Instructions:
 0x06: STR (REG8), (IMM16)ADR: Copy data from REG to ADR [Z].
 0x07: LDR (IMM16)ADR, (REG8): Copy data from ADR to REG [Z].
 —MATH—————————————————————————————————————————————————————————————————
-0x08: ADD (REG8)A, (REG8)B: Add B to A and store in A [C, Z].
-0x09: SUB (REG8)A, (REG8)B: Subtract B from A and store in A [Z, N].
-0x0A: DEC (REG8): Decrement REG by 1 [Z, N].
-0x0B: INC (REG8): Increment REG by 1 [C, Z].
-0x0C: ADC (REG8)A, (REG8)B: Add B and (C) to A and store in A [Z, C].
-0x0D: SBB (REG8)A, (REG8)B: Subtract B from A [Z, N].
+0x08: ADD (REG8)A, (REG8)B: Add A to B and store in B [C, Z].
+0x09: SUB (REG8)A, (REG8)B: Subtract A from B and store in N [Z, N].
+0x0A: INC (REG8): Increment REG by 1 [Z, C].
+0x0B: DEC (REG8): Decrement REG by 1 [Z, N].
+0x0C: ADC (REG8)A, (REG8)B: Add A and (C) to B and store in B [Z, C].
+0x0D: SBB (REG8)A, (REG8)B: Subtract A and (N) from B [Z, N].
 0x0E: NEG (REG8): Make REG Negative (2’s complement) [Z, N].
 0x0F: PAS (REG8): Don’t modify REG, just pass through [Z].
-0000_1(000) -> 0000_1(111)
 —STACK————————————————————————————————————————————————————————————————
 0x10: PSHI (IMM8):
 	Set data at SP to IMM8.
@@ -104,5 +103,3 @@ Set H.
 0x26: OR (REG8)A, (REG8)B: Bitwise OR A and B and store in A.
 0x27: XOR (REG8)A, (REG8)B: Bitwise XOR A and B and store in A.
 0x28: NOT (REG8): Invert A and store in A.
-0010_(0101) -> 0010_(1000)
-

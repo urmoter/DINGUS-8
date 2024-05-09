@@ -345,6 +345,540 @@ void mem_op(memory RAM, byte op) {
         }
     }
 }
+void math_op(memory RAM, byte op) {
+    switch (op) {
+        case 0x08: {
+            byte RegA = getop(RAM);
+            byte RegB = getop(RAM);
+            // Here we go!
+            // Switchception!!
+            switch (RegA) {
+                case 0x00: {
+                    // A source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "ADD %%A, %%A");
+                            if (((address) A+A) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*A_p) = A + A;
+                            if (A == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "ADD %%A, %%B");
+                            if (((address) A+B) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*B_p) = A + B;
+                            if (B == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "ADD %%A, %%C");
+                            if (((address) A+C) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*C_p) = A + C;
+                            if (C == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "ADD %%A, %%D");
+                            if (((address) A+D) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*D_p) = A + D;
+                            if (D == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x01: {
+                    // B source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "ADD %%B, %%A");
+                            if (((address) B+A) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*A_p) = B + A;
+                            if (A == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "ADD %%B, %%B");
+                            if (((address) B+B) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*B_p) = B + B;
+                            if (B == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "ADD %%B, %%C");
+                            if (((address) B+C) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*C_p) = B + C;
+                            if (C == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "ADD %%B, %%D");
+                            if (((address) B+D) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*D_p) = B + D;
+                            if (D == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x02: {
+                    // C source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "ADD %%C, %%A");
+                            if (((address) C+A) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*A_p) = C + A;
+                            if (A == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "ADD %%C, %%B");
+                            if (((address) C+B) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*B_p) = C + B;
+                            if (B == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "ADD %%C, %%C");
+                            if (((address) C+C) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*C_p) = C + C;
+                            if (C == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "ADD %%C, %%D");
+                            if (((address) C+D) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*D_p) = C + D;
+                            if (D == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x03: {
+                    // D source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "ADD %%D, %%A");
+                            if (((address) D+A) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*A_p) = D + A;
+                            if (A == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "ADD %%D, %%B");
+                            if (((address) D+B) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*B_p) = D + B;
+                            if (B == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "ADD %%D, %%C");
+                            if (((address) D+C) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*C_p) = D + C;
+                            if (C == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "ADD %%D, %%D");
+                            if (((address) D+D) > 0xFF) {
+                                (*S_p) = S | 0x10;
+                            }
+                            (*D_p) = D + D;
+                            if (D == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                default: {
+                    fprintf(stdout, "Invalid A register, 0x%02X!\n", RegA);
+                    break;
+                }
+            }
+            break;
+        }
+        case 0x09: {
+            byte RegA = getop(RAM);
+            byte RegB = getop(RAM);
+            // Here we go!
+            // Switchception!!
+            switch (RegA) {
+                case 0x00: {
+                    // A source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "SUB %%A, %%A");
+                            if (((address) A-A) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*A_p) = A - A;
+                            if (A == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "SUB %%A, %%B");
+                            if (((address) A-B) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*B_p) = A - B;
+                            if (B == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "SUB %%A, %%C");
+                            if (((address) A-C) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*C_p) = A - C;
+                            if (C == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "SUB %%A, %%D");
+                            if (((address) A-D) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*D_p) = A - D;
+                            if (D == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x01: {
+                    // B source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "SUB %%B, %%A");
+                            if (((address) B-A) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*A_p) = B - A;
+                            if (A == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "SUB %%B, %%B");
+                            if (((address) B-B) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*B_p) = B - B;
+                            if (B == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "SUB %%B, %%C");
+                            if (((address) B-C) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*C_p) = B - C;
+                            if (C == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "SUB %%B, %%D");
+                            if (((address) B-D) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*D_p) = B - D;
+                            if (D == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x02: {
+                    // C source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "SUB %%C, %%A");
+                            if (((address) C-A) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*A_p) = C - A;
+                            if (A == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "SUB %%C, %%B");
+                            if (((address) C-B) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*B_p) = C - B;
+                            if (B == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "SUB %%C, %%C");
+                            if (((address) C-C) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*C_p) = C - C;
+                            if (C == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "SUB %%C, %%D");
+                            if (((address) C-D) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*D_p) = C - D;
+                            if (D == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x03: {
+                    // D source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "SUB %%D, %%A");
+                            if (((address) D-A) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*A_p) = D - A;
+                            if (A == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "SUB %%D, %%B");
+                            if (((address) D-B) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*B_p) = D - B;
+                            if (B == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "SUB %%D, %%C");
+                            if (((address) D-C) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*C_p) = D - C;
+                            if (C == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "SUB %%D, %%D");
+                            if (((address) D-D) > 0xFF) {
+                                (*S_p) = S | 0x04;
+                            }
+                            (*D_p) = D - D;
+                            if (D == 0x00) {
+                                (*S_p) = S | 0x02;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                default: {
+                    fprintf(stdout, "Invalid A register, 0x%02X!\n", RegA);
+                    break;
+                }
+            }
+            break;
+        }
+        case 0x0A: {
+            byte reg = getop(RAM);
+            switch (reg) {
+                case 0x00: {
+                    if (A == 0xFF) {
+                        (*S_p) = S | 0x12;
+                    }
+                    (*A_p)++;
+                    break;
+                }
+                case 0x01: {
+                    if (B == 0xFF) {
+                        (*S_p) = S | 0x12;
+                    }
+                    (*B_p)++;
+                    break;
+                }
+                case 0x02: {
+                    if (C == 0xFF) {
+                        (*S_p) = S | 0x12;
+                    }
+                    (*C_p)++;
+                    break;
+                }
+                case 0x03: {
+                    if (D == 0xFF) {
+                        (*S_p) = S | 0x12;
+                    }
+                    (*D_p)++;
+                    break;
+                }
+            }
+            break;
+        }
+        case 0x0B: {
+            byte reg = getop(RAM);
+            switch (reg) {
+                case 0x00: {
+                    if (A == 0x00) {
+                        (*S_p) = S | 0x10;
+                    }
+                    (*A_p)--;
+                    if (A == 0x00) {
+                        (*S_p) = S | 0x04;
+                    }
+                    break;
+                }
+                case 0x01: {
+                    if (B == 0x00) {
+                        (*S_p) = S | 0x10;
+                    }
+                    (*B_p)--;
+                    if (B == 0x00) {
+                        (*S_p) = S | 0x04;
+                    }
+                    break;
+                }
+                case 0x02: {
+                    if (C == 0x00) {
+                        (*S_p) = S | 0x10;
+                    }
+                    (*C_p)--;
+                    if (C == 0x00) {
+                        (*S_p) = S | 0x04;
+                    }
+                    break;
+                }
+                case 0x03: {
+                    if (D == 0x00) {
+                        (*S_p) = S | 0x10;
+                    }
+                    (*D_p)--;
+                    if (D == 0x00) {
+                        (*S_p) = S | 0x04;
+                    }
+                    break;
+                }
+            }
+            break;
+        }
+    }
+}
 
 void init(memory RAM) {
     // Get the start address
@@ -360,8 +894,16 @@ void init(memory RAM) {
             fprintf(stdout, "NOP\n");
             continue;
         }
-        if ((opcode > 0x00) & (opcode <= 0x05)) {
+        if ((opcode > 0x00) && (opcode < 0x06)) {
             mov_op(RAM, opcode);
+            continue;
+        }
+        if ((opcode > 0x05) && (opcode < 0x08)) {
+            mem_op(RAM, opcode);
+            continue;
+        }
+        if ((opcode > 0x07) && (opcode < 0x10)) {
+            math_op(RAM, opcode);
             continue;
         }
     }
