@@ -72,6 +72,34 @@ byte getop(memory RAM) {
     return opcode;
 }
 
+int op_type(byte opcode) {
+    if (opcode == 0x00) {
+        fprintf(stdout, "NOP\n");
+        return -1;
+    }
+     if ((opcode > 0x00) && (opcode < 0x06)) {
+            return 0;
+        }
+        if ((opcode > 0x05) && (opcode < 0x08)) {
+            return 1;
+        }
+        if ((opcode > 0x07) && (opcode < 0x10)) {
+            return 2;
+        }
+        if ((opcode > 0x0A) && (opcode < 0x13)) {
+            return 3;
+        }
+        if ((opcode > 0x12) && (opcode < 0x18)) {
+            return 4;
+        }
+        if (opcode == 0x18) {
+            return 5;
+        }
+
+        fprintf(stderr, "Not a valid opcode!! (0x%02X)\n", opcode);
+        return -1;
+}
+
 void mov_op(memory RAM, byte op) {
     switch (op) {
         case 0x01: {
@@ -1590,6 +1618,96 @@ void stack_op(memory RAM, byte op) {
         }
     }
 }
+void jump_op(memory RAM, byte op) {
+    switch (op) {
+        case 0x13: {
+            // Halves of the address
+            byte LSB = getop(RAM);
+            byte MSB = getop(RAM);
+             // shift the MSB 8 bits left so (--------)00000000 is MSB
+            MSB = MSB << 8;
+            // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
+            address addr = MSB + LSB;
+            *(IP_p) = addr;
+            fprintf(stdout, "JMP $%04X\n", addr);
+            break;
+        }
+
+        case 0x14: {
+            // Halves of the address
+            byte LSB = getop(RAM);
+            byte MSB = getop(RAM);
+             // shift the MSB 8 bits left so (--------)00000000 is MSB
+            MSB = MSB << 8;
+            // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
+            address addr = MSB + LSB;
+            // Saving the IP
+            write(RAM, (address) SP, IP);
+            SP--;
+            write(RAM, (address) SP, (IP >> 4));
+            SP--;
+            // Jumping to the addr
+            *(IP_p) = addr;
+            fprintf(stdout, "CALL $%04X\n", addr);
+            break;
+        }
+
+        case 0x15: {
+            // Popping  IP
+            SP++;
+            byte MSB = read(RAM, SP);
+            write(RAM, SP, 0x00);
+
+            SP++;
+            byte LSB = read(RAM, SP);
+            write(RAM, SP, 0x00);
+
+            MSB = MSB << 8;
+            
+            *(IP_p) = MSB;
+            fprintf(stdout, "RET\n");
+        }
+    
+        case 0x16: {
+            // Halves of the address
+            byte LSB = getop(RAM);
+            byte MSB = getop(RAM);
+            // shift the MSB 8 bits left so (--------)00000000 is MSB
+            MSB = MSB << 8;
+            // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
+            address addr = MSB + LSB;
+            if (S & 0x02 == 0) {
+                *(IP_p) = addr;
+                fprintf(stdout, "JZ $%04X\n", addr);
+                break;
+            } else {
+                fprintf(stdout, "JZ $%04X\n", addr);
+                break;
+            }
+        }
+
+        case 0x17: {
+            // Halves of the address
+            byte LSB = getop(RAM);
+            byte MSB = getop(RAM);
+            // shift the MSB 8 bits left so (--------)00000000 is MSB
+            MSB = MSB << 8;
+            // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
+            address addr = MSB + LSB;
+            if (S & 0x02 != 0) {
+                *(IP_p) = addr;
+                fprintf(stdout, "JNZ $%04X\n", addr);
+                break;
+            } else {
+                fprintf(stdout, "JNZ $%04X\n", addr);
+                break;
+            }
+        }
+    }
+}
+void halt_op() {
+    exit;
+}
 
 void init(memory RAM) {
     // Get the start address
@@ -1601,21 +1719,31 @@ void init(memory RAM) {
     (*IP_p) = MSB + LSB;
     while ((S & 0x80) == 0x00) {
         byte opcode = getop(RAM);
-        if (opcode == 0x00) {
-            fprintf(stdout, "NOP\n");
-            continue;
-        }
-        if ((opcode > 0x00) && (opcode < 0x06)) {
-            mov_op(RAM, opcode);
-            continue;
-        }
-        if ((opcode > 0x05) && (opcode < 0x08)) {
-            mem_op(RAM, opcode);
-            continue;
-        }
-        if ((opcode > 0x07) && (opcode < 0x10)) {
-            math_op(RAM, opcode);
-            continue;
+        int type = op_type(opcode);
+        switch (type) {
+            case 0:
+                mov_op(RAM, opcode);
+                break;
+
+            case 1:
+                mem_op(RAM, opcode);
+                break;
+
+            case 2:
+                math_op(RAM, opcode);
+                break;
+
+            case 3:
+                stack_op(RAM, opcode);
+                break;
+
+            case 4:
+                jump_op(RAM, opcode);
+                break;
+
+            case 5:
+                halt_op();
+                break;
         }
     }
     return;
