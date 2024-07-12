@@ -7,7 +7,7 @@ byte B = 0x00;
 byte C = 0x00;
 byte D = 0x00;
 byte SP = 0x00;
-byte S = 0x00;
+byte S = 0xFF;
 address IP = 0x0000;
 
 byte *A_p = &A;
@@ -1491,6 +1491,101 @@ void math_op(memory RAM, byte op) {
                     break;
                 }
             }
+            break;
+        }
+    }
+}
+void stack_op(memory RAM, byte op) {
+    switch (op) {
+        case 0x10: {
+            byte data = getop(RAM);
+            write(RAM, (address) SP, data);
+            SP--;
+            fprintf(stdout, "PSHI $%02X\n", data);
+            break;
+        }
+
+        case 0x11: {
+            byte reg = getop(RAM);
+            switch (reg) {
+                case 0x00: {
+                    write(RAM, (address) SP, A);
+                    SP--;
+                    fprintf(stdout, "PSHR %%A\n");
+                    break;
+                }
+
+                case 0x01: {
+                    write(RAM, (address) SP, B);
+                    SP--;
+                    fprintf(stdout, "PSHR %%B\n");
+                    break;
+                }
+
+                case 0x02: {
+                    write(RAM, (address) SP, C);
+                    SP--;
+                    fprintf(stdout, "PSHR %%C\n");
+                    break;
+                }
+
+                case 0x03: {
+                    write(RAM, (address) SP, D);
+                    SP--;
+                    fprintf(stdout, "PSHR %%D\n");
+                    break;
+                }
+
+                default: {
+                    fprintf(stdout, "Invalid register, 0x%02X!\n", reg);
+                    break;
+                }
+            }
+
+            break;
+        }
+
+        case 0x12: {
+            byte reg = getop(RAM);
+            switch (reg) {
+                case 0x00: {
+                    SP++;
+                    *(A_p) = read(RAM, SP);
+                    write(RAM, SP, 0x00);
+                    fprintf(stdout, "POP %%A\n");
+                    break;
+                }
+
+                case 0x01: {
+                    SP++;
+                    *(B_p) = read(RAM, SP);
+                    write(RAM, SP, 0x00);
+                    fprintf(stdout, "POP %%B\n");
+                    break;
+                }
+
+                case 0x02: {
+                    SP++;
+                    *(C_p) = read(RAM, SP);
+                    write(RAM, SP, 0x00);
+                    fprintf(stdout, "POP %%C\n");
+                    break;
+                }
+
+                case 0x03: {
+                    SP++;
+                    *(D_p) = read(RAM, SP);
+                    write(RAM, SP, 0x00);
+                    fprintf(stdout, "POP %%D\n");
+                    break;
+                }
+
+                default: {
+                    fprintf(stdout, "Invalid register, 0x%02X!\n", reg);
+                    break;
+                }
+            }
+
             break;
         }
     }

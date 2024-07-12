@@ -70,8 +70,8 @@ x11: PSHR (REG):
 	Decrement SP.
 0x12: POP (REG): [Z]
 	Increment SP.
-	Set REG’s value to the data after SP.
-	Set the data after SP to 0x00.
+	Set REG’s value to the data at SP.
+	Set the data at SP to 0x00.
 -JUMPING——————————————————————————————————————————————————————————————
 0x13: JMP (IMM16)ADR: Jump to ADR without saving IP on the stack.
 0x14: CALL (IMM16)ADR: Jump to ADR but save IP on the stack.
