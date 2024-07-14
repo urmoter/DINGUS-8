@@ -11,6 +11,7 @@ void math_op(memory RAM, byte op);
 void stack_op(memory RAM, byte op);
 void jump_op(memory RAM, byte op);
 void halt_op();
+void over_op(memory RAM, byte op);
 
 void init(memory RAM);
 

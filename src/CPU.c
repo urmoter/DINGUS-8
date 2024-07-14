@@ -95,6 +95,9 @@ int op_type(byte opcode) {
         if (opcode == 0x18) {
             return 5;
         }
+        if ((opcode == 0x19) || (opcode == 0x1A)) {
+            return 6;
+        }
 
         fprintf(stderr, "Not a valid opcode!! (0x%02X)\n", opcode);
         return -1;
@@ -1708,6 +1711,45 @@ void jump_op(memory RAM, byte op) {
 void halt_op() {
     exit;
 }
+void over_op(memory RAM, byte op) {
+    switch (op) {
+        case 0x19: {
+            // Halves of the address
+            byte LSB = getop(RAM);
+            byte MSB = getop(RAM);
+            // shift the MSB 8 bits left so (--------)00000000 is MSB
+            MSB = MSB << 8;
+            // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
+            address addr = MSB + LSB;
+            if (S & 0x01 == 0) {
+                *(IP_p) = addr;
+                fprintf(stdout, "JO $%04X\n", addr);
+                break;
+            } else {
+                fprintf(stdout, "JO $%04X\n", addr);
+                break;
+            }
+        }
+
+        case 0x1A: {
+            // Halves of the address
+            byte LSB = getop(RAM);
+            byte MSB = getop(RAM);
+            // shift the MSB 8 bits left so (--------)00000000 is MSB
+            MSB = MSB << 8;
+            // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
+            address addr = MSB + LSB;
+            if (S & 0x01 != 0) {
+                *(IP_p) = addr;
+                fprintf(stdout, "JNO $%04X\n", addr);
+                break;
+            } else {
+                fprintf(stdout, "JNO $%04X\n", addr);
+                break;
+            }
+        }
+    }
+}
 
 void init(memory RAM) {
     // Get the start address
@@ -1744,6 +1786,9 @@ void init(memory RAM) {
             case 5:
                 halt_op();
                 break;
+
+            case 6:
+                over_op(RAM, opcode);
         }
     }
     return;
