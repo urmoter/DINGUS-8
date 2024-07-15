@@ -98,6 +98,9 @@ int op_type(byte opcode) {
         if ((opcode == 0x19) || (opcode == 0x1A)) {
             return 6;
         }
+        if ((opcode > 0x1A) && (opcode < 0x25)) {
+            return 7;
+        }
 
         fprintf(stderr, "Not a valid opcode!! (0x%02X)\n", opcode);
         return -1;
@@ -1750,6 +1753,74 @@ void over_op(memory RAM, byte op) {
         }
     }
 }
+void status_op(memory RAM, byte op) {
+    switch (op) {
+        // Overflow
+        case 0x1B: {
+            *(S_p) = S | 0x01;
+            fprintf(stdout, "SETO\n");
+            break;
+        }
+
+        case 0x1C: {
+            *(S_p) = S & 0xFE;
+            printf(stdout, "CLRO\n");
+            break;
+        }
+
+        // Zero
+        case 0x1D: {
+            *(S_p) = S | 0x02;
+            fprintf(stdout, "SETZ\n");
+            break;
+        }
+
+        case 0x1E: {
+            *(S_p) = S & 0xF;
+            printf(stdout, "CLRZ\n");
+            break;
+        }
+
+        // Negative
+        case 0x1F: {
+            *(S_p) = S | 0x04;
+            fprintf(stdout, "SETN\n");
+            break;
+        }
+
+        case 0x20: {
+            *(S_p) = S & 0xFB;
+            printf(stdout, "CLRN\n");
+            break;
+        }
+
+        // Parity
+        case 0x21: {
+            *(S_p) = S | 0x08;
+            fprintf(stdout, "SETP\n");
+            break;
+        }
+
+        case 0x22: {
+            *(S_p) = S & 0xF7;
+            printf(stdout, "CLRP\n");
+            break;
+        }
+
+        // Carry
+        case 0x23: {
+            *(S_p) = S | 0x10;
+            fprintf(stdout, "SETC\n");
+            break;
+        }
+
+        case 0x24: {
+            *(S_p) = S & 0xEF;
+            printf(stdout, "CLRC\n");
+            break;
+        }
+    }
+}
 
 void init(memory RAM) {
     // Get the start address
@@ -1789,6 +1860,11 @@ void init(memory RAM) {
 
             case 6:
                 over_op(RAM, opcode);
+                break;
+
+            case 7:
+                status_op(RAM, opcode);
+                break;
         }
     }
     return;
