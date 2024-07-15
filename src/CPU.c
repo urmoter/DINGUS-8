@@ -101,6 +101,9 @@ int op_type(byte opcode) {
         if ((opcode > 0x1A) && (opcode < 0x25)) {
             return 7;
         }
+        if ((opcode > 0x24) && (opcode < 0x29)) {
+            return 8;
+        }
 
         fprintf(stderr, "Not a valid opcode!! (0x%02X)\n", opcode);
         return -1;
@@ -1821,6 +1824,422 @@ void status_op(memory RAM, byte op) {
         }
     }
 }
+void logic_op(memory RAM, byte op) {
+    switch (op) {
+        case 0x25: {
+            byte RegA = getop(RAM);
+            byte RegB = getop(RAM);
+            // Here we go!
+            // Switchception!!
+            switch (RegA) {
+                case 0x00: {
+                    // A source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "AND %%A, %%A");
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "AND %%A, %%B");
+                            *(A_p) = A & B;
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "AND %%A, %%C");
+                            *(A_p) = A & C;
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "AND %%A, %%D");
+                            *(A_p) = A & D;
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x01: {
+                    // B source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "AND %%B, %%A");
+                            *(B_p) = B & A;
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "AND %%B, %%B");\
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "AND %%B, %%C");
+                            *(B_p) = B & C;
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "AND %%B, %%D");
+                            *(B_p) = B & D;
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x02: {
+                    // C source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "AND %%C, %%A");
+                            *(C_p) = C & A;
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "AND %%C, %%B");
+                            *(C_p) = C & B;
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "AND %%C, %%C");
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "AND %%C, %%D");
+                            *(C_p) = C & D;
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x03: {
+                    // D source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "AND %%D, %%A");
+                            *(D_p) = D & A;
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "AND %%D, %%B");
+                            *(D_p) = D & B;
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "AND %%D, %%C");
+                            *(D_p) = D & C;
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "AND %%D, %%D");
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                default: {
+                    fprintf(stdout, "Invalid A register, 0x%02X!\n", RegA);
+                    break;
+                }
+            }
+            break;
+        }
+
+        case 0x26: {
+            byte RegA = getop(RAM);
+            byte RegB = getop(RAM);
+            // Here we go!
+            // Switchception!!
+            switch (RegA) {
+                case 0x00: {
+                    // A source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "OR %%A, %%A");
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "OR %%A, %%B");
+                            *(A_p) = A | B;
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "OR %%A, %%C");
+                            *(A_p) = A | C;
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "OR %%A, %%D");
+                            *(A_p) = A | D;
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x01: {
+                    // B source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "OR %%B, %%A");
+                            *(B_p) = B | A;
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "OR %%B, %%B");\
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "OR %%B, %%C");
+                            *(B_p) = B | C;
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "OR %%B, %%D");
+                            *(B_p) = B | D;
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x02: {
+                    // C source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "OR %%C, %%A");
+                            *(C_p) = C | A;
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "OR %%C, %%B");
+                            *(C_p) = C | B;
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "OR %%C, %%C");
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "OR %%C, %%D");
+                            *(C_p) = C | D;
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x03: {
+                    // D source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "OR %%D, %%A");
+                            *(D_p) = D | A;
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "OR %%D, %%B");
+                            *(D_p) = D | B;
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "OR %%D, %%C");
+                            *(D_p) = D | C;
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "OR %%D, %%D");
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                default: {
+                    fprintf(stdout, "Invalid A register, 0x%02X!\n", RegA);
+                    break;
+                }
+            }
+            break;
+        }
+
+        case 0x27: {
+            byte RegA = getop(RAM);
+            byte RegB = getop(RAM);
+            // Here we go!
+            // Switchception!!
+            switch (RegA) {
+                case 0x00: {
+                    // A source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "XOR %%A, %%A");
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "XOR %%A, %%B");
+                            *(A_p) = A ^ B;
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "XOR %%A, %%C");
+                            *(A_p) = A ^ C;
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "XOR %%A, %%D");
+                            *(A_p) = A ^ D;
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x01: {
+                    // B source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "XOR %%B, %%A");
+                            *(B_p) = B ^ A;
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "XOR %%B, %%B");\
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "XOR %%B, %%C");
+                            *(B_p) = B ^ C;
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "XOR %%B, %%D");
+                            *(B_p) = B ^ D;
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x02: {
+                    // C source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "XOR %%C, %%A");
+                            *(C_p) = C ^ A;
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "XOR %%C, %%B");
+                            *(C_p) = C ^ B;
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "XOR %%C, %%C");
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "XOR %%C, %%D");
+                            *(C_p) = C ^ D;
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                case 0x03: {
+                    // D source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "XOR %%D, %%A");
+                            *(D_p) = D ^ A;
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "XOR %%D, %%B");
+                            *(D_p) = D ^ B;
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "XOR %%D, %%C");
+                            *(D_p) = D ^ C;
+                            break;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "XOR %%D, %%D");
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                }
+                default: {
+                    fprintf(stdout, "Invalid A register, 0x%02X!\n", RegA);
+                    break;
+                }
+            }
+            break;
+        }
+    
+        case 0x28: {
+            byte Reg = getop(RAM);
+
+            switch (Reg) {
+                case 0x00: {
+                    fprintf(stdout, "NOT %%A\n");
+                    *(A_p) = ~A;
+                    break;
+                }
+
+                case 0x01: {
+                    fprintf(stdout, "NOT %%B\n");
+                    *(B_p) = ~B;
+                    break;
+                }
+
+                case 0x02: {
+                    fprintf(stdout, "NOT %%C\n");
+                    *(C_p) = ~C;
+                    break;
+                }
+
+                case 0x03: {
+                    fprintf(stdout, "NOT %%D\n");
+                    *(D_p) = ~D;
+                    break;
+                }
+
+                default: {
+                    fprintf(stdout, "Invalid register, 0x%02X!\n", Reg);
+                    break;
+                }
+            }
+        }
+    }
+}
 
 void init(memory RAM) {
     // Get the start address
@@ -1864,6 +2283,10 @@ void init(memory RAM) {
 
             case 7:
                 status_op(RAM, opcode);
+                break;
+
+            case 8:
+                logic_op(RAM, opcode);
                 break;
         }
     }
