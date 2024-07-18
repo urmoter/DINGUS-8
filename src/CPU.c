@@ -6,14 +6,15 @@ byte A = 0x00;
 byte B = 0x00;
 byte C = 0x00;
 byte D = 0x00;
-byte SP = 0x00;
-byte S = 0xFF;
+byte SP = 0xFF;
+byte S = 0x00;
 address IP = 0x0000;
 
 byte *A_p = &A;
 byte *B_p = &B;
 byte *C_p = &C;
 byte *D_p = &D;
+byte *SP_p = &SP;
 byte *S_p = &S;
 address *IP_p = &IP;
 
@@ -63,12 +64,13 @@ byte flip_byte(byte data) {
             offset2 += 2;
         }
     }
+    return result;
 }
 
 byte getop(memory RAM) {
     byte opcode = read(RAM, IP);
     fprintf(stdout, "byte 0x%02X at address 0x%04X\n", opcode, IP);
-    (*IP_p)++;
+    *(IP_p) = IP + 1;
     return opcode;
 }
 
@@ -77,36 +79,36 @@ int op_type(byte opcode) {
         fprintf(stdout, "NOP\n");
         return -1;
     }
-     if ((opcode > 0x00) && (opcode < 0x06)) {
-            return 0;
-        }
-        if ((opcode > 0x05) && (opcode < 0x08)) {
-            return 1;
-        }
-        if ((opcode > 0x07) && (opcode < 0x10)) {
-            return 2;
-        }
-        if ((opcode > 0x0A) && (opcode < 0x13)) {
-            return 3;
-        }
-        if ((opcode > 0x12) && (opcode < 0x18)) {
-            return 4;
-        }
-        if (opcode == 0x18) {
-            return 5;
-        }
-        if ((opcode == 0x19) || (opcode == 0x1A)) {
-            return 6;
-        }
-        if ((opcode > 0x1A) && (opcode < 0x25)) {
-            return 7;
-        }
-        if ((opcode > 0x24) && (opcode < 0x29)) {
-            return 8;
-        }
+    if ((opcode > 0x00) && (opcode < 0x06)) {
+        return 0;
+    }
+    if ((opcode > 0x05) && (opcode < 0x08)) {
+        return 1;
+    }
+    if ((opcode > 0x07) && (opcode < 0x10)) {
+        return 2;
+    }
+    if ((opcode > 0x0A) && (opcode < 0x13)) {
+        return 3;
+    }
+    if ((opcode > 0x12) && (opcode < 0x18)) {
+        return 4;
+    }
+    if (opcode == 0x18) {
+        return 5;
+    }
+    if ((opcode == 0x19) || (opcode == 0x1A)) {
+        return 6;
+    }
+    if ((opcode > 0x1A) && (opcode < 0x25)) {
+        return 7;
+    }
+    if ((opcode > 0x24) && (opcode < 0x29)) {
+        return 8;
+    }
 
-        fprintf(stderr, "Not a valid opcode!! (0x%02X)\n", opcode);
-        return -1;
+    fprintf(stderr, "Not a valid opcode!! (0x%02X)\n", opcode);
+    return -1;
 }
 
 void mov_op(memory RAM, byte op) {
@@ -156,15 +158,16 @@ void mov_op(memory RAM, byte op) {
                 case 0x00: {
                     // A source cases
                     switch (RegB) {
+                        fprintf(stdout, "REG A: %02X\nREG B: %02X\n", RegA, RegB);
                         case 0x00: {
-                            fprintf(stdout, "CPY %%A, %%A");
+                            fprintf(stdout, "CPY %%A, %%A\n");
                             if (A == 0x00) {
                                 (*S_p) = S | 0x02;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "CPY %%A, %%B");
+                            fprintf(stdout, "CPY %%A, %%B\n");
                             (*B_p) = A;
                             if (B == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -172,7 +175,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "CPY %%A, %%C");
+                            fprintf(stdout, "CPY %%A, %%C\n");
                             (*C_p) = A;
                             if (C == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -180,7 +183,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "CPY %%A, %%D");
+                            fprintf(stdout, "CPY %%A, %%D\n");
                             (*D_p) = A;
                             if (D == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -190,14 +193,15 @@ void mov_op(memory RAM, byte op) {
                         default: {
                             fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
                             break;
-                        }
+                        }   
                     }
+                    break;
                 }
                 case 0x01: {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "CPY %%B, %%A");
+                            fprintf(stdout, "CPY %%B, %%A\n");
                             (*A_p) = B;
                             if (A == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -205,14 +209,14 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "CPY %%B, %%B");
+                            fprintf(stdout, "CPY %%B, %%B\n");
                             if (B == 0x00) {
                                 (*S_p) = S | 0x02;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "CPY %%B, %%C");
+                            fprintf(stdout, "CPY %%B, %%C\n");
                             (*C_p) = B;
                             if (C == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -220,7 +224,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "CPY %%B, %%D");
+                            fprintf(stdout, "CPY %%B, %%D\n");
                             (*D_p) = B;
                             if (D == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -232,12 +236,13 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x02: {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "CPY %%C, %%A");
+                            fprintf(stdout, "CPY %%C, %%A\n");
                             (*A_p) = C;
                             if (A == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -245,7 +250,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "CPY %%C, %%B");
+                            fprintf(stdout, "CPY %%C, %%B\n");
                             (*B_p) = C;
                             if (B == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -253,14 +258,14 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "CPY %%C, %%C");
+                            fprintf(stdout, "CPY %%C, %%C\n");
                             if (C == 0x00) {
                                 (*S_p) = S | 0x02;
                             }
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "CPY %%C, %%D");
+                            fprintf(stdout, "CPY %%C, %%D\n");
                             (*D_p) = C;
                             if (D == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -272,12 +277,13 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x03: {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "CPY %%D, %%A");
+                            fprintf(stdout, "CPY %%D, %%A\n");
                             (*A_p) = D;
                             if (A == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -285,7 +291,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "CPY %%D, %%B");
+                            fprintf(stdout, "CPY %%D, %%B\n");
                             (*B_p) = D;
                             if (B == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -293,7 +299,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "CPY %%D, %%C");
+                            fprintf(stdout, "CPY %%D, %%C\n");
                             (*C_p) = D;
                             if (C == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -301,7 +307,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "CPY %%D, %%D");
+                            fprintf(stdout, "CPY %%D, %%D\n");
                             if (D == 0x00) {
                                 (*S_p) = S | 0x02;
                             }
@@ -312,6 +318,7 @@ void mov_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 default: {
                     fprintf(stdout, "Invalid A register, 0x%02X!\n", RegA);
@@ -337,7 +344,7 @@ void mem_op(memory RAM, byte op) {
 
             switch (Reg) {
                 case 0x00: {
-                    fprintf("STR %%A, @%04X\n", addr);
+                    fprintf(stdout, "STR %%A, @%04X\n", addr);
                     write(RAM, addr, A);
                     if (A == 0x00) {
                         (*S_p) = S | 0x02;
@@ -345,7 +352,7 @@ void mem_op(memory RAM, byte op) {
                     break;
                 }
                 case 0x01: {
-                    fprintf("STR %%B, @%04X\n", addr);
+                    fprintf(stdout, "STR %%B, @%04X\n", addr);
                     write(RAM, addr, B);
                     if (B == 0x00) {
                         (*S_p) = S | 0x02;
@@ -353,7 +360,7 @@ void mem_op(memory RAM, byte op) {
                     break;
                 }
                 case 0x02: {
-                    fprintf("STR %%C, @%04X\n", addr);
+                    fprintf(stdout, "STR %%C, @%04X\n", addr);
                     write(RAM, addr, C);
                     if (C == 0x00) {
                         (*S_p) = S | 0x02;
@@ -361,7 +368,7 @@ void mem_op(memory RAM, byte op) {
                     break;
                 }
                 case 0x03: {
-                    fprintf("STR %%D, @%04X\n", addr);
+                    fprintf(stdout, "STR %%D, @%04X\n", addr);
                     write(RAM, addr, D);
                     if (D == 0x00) {
                         (*S_p) = S | 0x02;
@@ -390,7 +397,7 @@ void mem_op(memory RAM, byte op) {
 
             switch (Reg) {
                 case 0x00: {
-                    fprintf("LDR @%04X, %%A\n", addr);
+                    fprintf(stdout, "LDR @%04X, %%A\n", addr);
                     (*A_p) = read(RAM, addr);
                     if (A == 0x00) {
                         (*S_p) = S | 0x02;
@@ -398,7 +405,7 @@ void mem_op(memory RAM, byte op) {
                     break;
                 }
                 case 0x01: {
-                    fprintf("LDR @%04X, %%B\n", addr);
+                    fprintf(stdout, "LDR @%04X, %%B\n", addr);
                     (*B_p) = read(RAM, addr);
                     if (B == 0x00) {
                         (*S_p) = S | 0x02;
@@ -406,7 +413,7 @@ void mem_op(memory RAM, byte op) {
                     break;
                 }
                 case 0x02: {
-                    fprintf("LDR @%04X, %%C\n", addr);
+                    fprintf(stdout, "LDR @%04X, %%C\n", addr);
                     (*C_p) = read(RAM, addr);
                     if (C == 0x00) {
                         (*S_p) = S | 0x02;
@@ -414,7 +421,7 @@ void mem_op(memory RAM, byte op) {
                     break;
                 }
                 case 0x03: {
-                    fprintf("LDR @%04X, %%D\n", addr);
+                    fprintf(stdout, "LDR @%04X, %%D\n", addr);
                     (*D_p) = read(RAM, addr);
                     if (D == 0x00) {
                         (*S_p) = S | 0x02;
@@ -442,7 +449,7 @@ void math_op(memory RAM, byte op) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "ADD %%A, %%A");
+                            fprintf(stdout, "ADD %%A, %%A\n");
                             if (( A+A) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -453,7 +460,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "ADD %%A, %%B");
+                            fprintf(stdout, "ADD %%A, %%B\n");
                             if (( A+B) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -464,7 +471,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "ADD %%A, %%C");
+                            fprintf(stdout, "ADD %%A, %%C\n");
                             if (( A+C) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -475,7 +482,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "ADD %%A, %%D");
+                            fprintf(stdout, "ADD %%A, %%D\n");
                             if (( A+D) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -490,12 +497,13 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x01: {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "ADD %%B, %%A");
+                            fprintf(stdout, "ADD %%B, %%A\n");
                             if (( B+A) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -506,7 +514,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "ADD %%B, %%B");
+                            fprintf(stdout, "ADD %%B, %%B\n");
                             if (( B+B) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -517,7 +525,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "ADD %%B, %%C");
+                            fprintf(stdout, "ADD %%B, %%C\n");
                             if (( B+C) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -528,7 +536,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "ADD %%B, %%D");
+                            fprintf(stdout, "ADD %%B, %%D\n");
                             if (( B+D) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -543,12 +551,13 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x02: {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "ADD %%C, %%A");
+                            fprintf(stdout, "ADD %%C, %%A\n");
                             if (( C+A) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -559,7 +568,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "ADD %%C, %%B");
+                            fprintf(stdout, "ADD %%C, %%B\n");
                             if (( C+B) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -570,7 +579,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "ADD %%C, %%C");
+                            fprintf(stdout, "ADD %%C, %%C\n");
                             if (( C+C) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -581,7 +590,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "ADD %%C, %%D");
+                            fprintf(stdout, "ADD %%C, %%D\n");
                             if (( C+D) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -596,12 +605,13 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x03: {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "ADD %%D, %%A");
+                            fprintf(stdout, "ADD %%D, %%A\n");
                             if (( D+A) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -612,7 +622,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "ADD %%D, %%B");
+                            fprintf(stdout, "ADD %%D, %%B\n");
                             if (( D+B) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -623,7 +633,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "ADD %%D, %%C");
+                            fprintf(stdout, "ADD %%D, %%C\n");
                             if (( D+C) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -634,7 +644,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "ADD %%D, %%D");
+                            fprintf(stdout, "ADD %%D, %%D\n");
                             if (( D+D) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -667,7 +677,7 @@ void math_op(memory RAM, byte op) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "SUB %%A, %%A");
+                            fprintf(stdout, "SUB %%A, %%A\n");
                             if (( A-A) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -678,7 +688,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "SUB %%A, %%B");
+                            fprintf(stdout, "SUB %%A, %%B\n");
                             if (( A-B) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -689,7 +699,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "SUB %%A, %%C");
+                            fprintf(stdout, "SUB %%A, %%C\n");
                             if (( A-C) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -700,7 +710,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "SUB %%A, %%D");
+                            fprintf(stdout, "SUB %%A, %%D\n");
                             if (( A-D) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -715,12 +725,13 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x01: {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "SUB %%B, %%A");
+                            fprintf(stdout, "SUB %%B, %%A\n");
                             if (( B-A) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -731,7 +742,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "SUB %%B, %%B");
+                            fprintf(stdout, "SUB %%B, %%B\n");
                             if (( B-B) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -742,7 +753,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "SUB %%B, %%C");
+                            fprintf(stdout, "SUB %%B, %%C\n");
                             if (( B-C) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -753,7 +764,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "SUB %%B, %%D");
+                            fprintf(stdout, "SUB %%B, %%D\n");
                             if (( B-D) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -768,12 +779,13 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x02: {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "SUB %%C, %%A");
+                            fprintf(stdout, "SUB %%C, %%A\n");
                             if (( C-A) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -784,7 +796,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "SUB %%C, %%B");
+                            fprintf(stdout, "SUB %%C, %%B\n");
                             if (( C-B) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -795,7 +807,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "SUB %%C, %%C");
+                            fprintf(stdout, "SUB %%C, %%C\n");
                             if (( C-C) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -806,7 +818,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "SUB %%C, %%D");
+                            fprintf(stdout, "SUB %%C, %%D\n");
                             if (( C-D) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -821,12 +833,13 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x03: {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "SUB %%D, %%A");
+                            fprintf(stdout, "SUB %%D, %%A\n");
                             if (( D-A) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -837,7 +850,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "SUB %%D, %%B");
+                            fprintf(stdout, "SUB %%D, %%B\n");
                             if (( D-B) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -848,7 +861,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "SUB %%D, %%C");
+                            fprintf(stdout, "SUB %%D, %%C\n");
                             if (( D-C) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -859,7 +872,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "SUB %%D, %%D");
+                            fprintf(stdout, "SUB %%D, %%D\n");
                             if (( D-D) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -874,6 +887,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 default: {
                     fprintf(stdout, "Invalid A register, 0x%02X!\n", RegA);
@@ -886,31 +900,35 @@ void math_op(memory RAM, byte op) {
             byte reg = getop(RAM);
             switch (reg) {
                 case 0x00: {
+                    fprintf(stdout, "INC %%A\n");
                     if (A == 0xFF) {
                         (*S_p) = S | 0x12;
                     }
-                    (*A_p)++;
+                    (*A_p) = A + 1;
                     break;
                 }
                 case 0x01: {
+                    fprintf(stdout, "INC %%B\n");
                     if (B == 0xFF) {
                         (*S_p) = S | 0x12;
                     }
-                    (*B_p)++;
+                    (*B_p) = B + 1;
                     break;
                 }
                 case 0x02: {
+                    fprintf(stdout, "INC %%C\n");
                     if (C == 0xFF) {
                         (*S_p) = S | 0x12;
                     }
-                    (*C_p)++;
+                    (*C_p) = C + 1;
                     break;
                 }
                 case 0x03: {
+                    fprintf(stdout, "INC %%D\n");
                     if (D == 0xFF) {
                         (*S_p) = S | 0x12;
                     }
-                    (*D_p)++;
+                    (*D_p) = D + 1;
                     break;
                 }
             }
@@ -919,41 +937,45 @@ void math_op(memory RAM, byte op) {
         case 0x0B: {
             byte reg = getop(RAM);
             switch (reg) {
+                fprintf(stdout, "DEC %%A\n");
                 case 0x00: {
                     if (A == 0x00) {
                         (*S_p) = S | 0x10;
                     }
-                    (*A_p)--;
+                    (*A_p) = A - 1;
                     if (A == 0x00) {
                         (*S_p) = S | 0x04;
                     }
                     break;
                 }
                 case 0x01: {
+                    fprintf(stdout, "DEC %%B\n");
                     if (B == 0x00) {
                         (*S_p) = S | 0x10;
                     }
-                    (*B_p)--;
+                    (*B_p) = B - 1;
                     if (B == 0x00) {
                         (*S_p) = S | 0x04;
                     }
                     break;
                 }
                 case 0x02: {
+                    fprintf(stdout, "DEC %%C\n");
                     if (C == 0x00) {
                         (*S_p) = S | 0x10;
                     }
-                    (*C_p)--;
+                    (*C_p) = C - 1;
                     if (C == 0x00) {
                         (*S_p) = S | 0x04;
                     }
                     break;
                 }
                 case 0x03: {
+                    fprintf(stdout, "DEC %%D\n");
                     if (D == 0x00) {
                         (*S_p) = S | 0x10;
                     }
-                    (*D_p)--;
+                    (*D_p) = D - 1;
                     if (D == 0x00) {
                         (*S_p) = S | 0x04;
                     }
@@ -973,7 +995,7 @@ void math_op(memory RAM, byte op) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "ADC %%A, %%A");
+                            fprintf(stdout, "ADC %%A, %%A\n");
                             if (( A+A+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -984,7 +1006,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "ADC %%A, %%B");
+                            fprintf(stdout, "ADC %%A, %%B\n");
                             if (( A+B+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -995,7 +1017,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "ADC %%A, %%C");
+                            fprintf(stdout, "ADC %%A, %%C\n");
                             if (( A+C+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1006,7 +1028,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "ADC %%A, %%D");
+                            fprintf(stdout, "ADC %%A, %%D\n");
                             if (( A+D+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1021,12 +1043,13 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x01: {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "ADC %%B, %%A");
+                            fprintf(stdout, "ADC %%B, %%A\n");
                             if (( B+A+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1037,7 +1060,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "ADC %%B, %%B");
+                            fprintf(stdout, "ADC %%B, %%B\n");
                             if (( B+B+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1048,7 +1071,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "ADC %%B, %%C");
+                            fprintf(stdout, "ADC %%B, %%C\n");
                             if (( B+C+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1059,7 +1082,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "ADC %%B, %%D");
+                            fprintf(stdout, "ADC %%B, %%D\n");
                             if (( B+D+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1074,12 +1097,13 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x02: {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "ADC %%C, %%A");
+                            fprintf(stdout, "ADC %%C, %%A\n");
                             if (( C+A+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1090,7 +1114,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "ADC %%C, %%B");
+                            fprintf(stdout, "ADC %%C, %%B\n");
                             if (( C+B+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1101,7 +1125,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "ADC %%C, %%C");
+                            fprintf(stdout, "ADC %%C, %%C\n");
                             if (( C+C+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1112,7 +1136,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "ADC %%C, %%D");
+                            fprintf(stdout, "ADC %%C, %%D\n");
                             if (( C+D+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1127,12 +1151,13 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x03: {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "ADC %%D, %%A");
+                            fprintf(stdout, "ADC %%D, %%A\n");
                             if (( D+A+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1143,7 +1168,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "ADC %%D, %%B");
+                            fprintf(stdout, "ADC %%D, %%B\n");
                             if (( D+B+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1154,7 +1179,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "ADC %%D, %%C");
+                            fprintf(stdout, "ADC %%D, %%C\n");
                             if (( D+C+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1165,7 +1190,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "ADC %%D, %%D");
+                            fprintf(stdout, "ADC %%D, %%D\n");
                             if (( D+D+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1180,6 +1205,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 default: {
                     fprintf(stdout, "Invalid A register, 0x%02X!\n", RegA);
@@ -1199,7 +1225,7 @@ void math_op(memory RAM, byte op) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "SBB %%A, %%A");
+                            fprintf(stdout, "SBB %%A, %%A\n");
                             if (( A-A-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1210,7 +1236,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "SBB %%A, %%B");
+                            fprintf(stdout, "SBB %%A, %%B\n");
                             if (( A-B-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1221,7 +1247,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "SBB %%A, %%C");
+                            fprintf(stdout, "SBB %%A, %%C\n");
                             if (( A-C-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1232,7 +1258,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "SBB %%A, %%D");
+                            fprintf(stdout, "SBB %%A, %%D\n");
                             if (( A-D-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1247,12 +1273,13 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x01: {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "SBB %%B, %%A");
+                            fprintf(stdout, "SBB %%B, %%A\n");
                             if (( B-A-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1263,7 +1290,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "SBB %%B, %%B");
+                            fprintf(stdout, "SBB %%B, %%B\n");
                             if (( B-B-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1274,7 +1301,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "SBB %%B, %%C");
+                            fprintf(stdout, "SBB %%B, %%C\n");
                             if (( B-C-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1285,7 +1312,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "SBB %%B, %%D");
+                            fprintf(stdout, "SBB %%B, %%D\n");
                             if (( B-D-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1300,12 +1327,13 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x02: {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "SBB %%C, %%A");
+                            fprintf(stdout, "SBB %%C, %%A\n");
                             if (( C-A-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1316,7 +1344,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "SBB %%C, %%B");
+                            fprintf(stdout, "SBB %%C, %%B\n");
                             if (( C-B-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1327,7 +1355,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "SBB %%C, %%C");
+                            fprintf(stdout, "SBB %%C, %%C\n");
                             if (( C-C-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1338,7 +1366,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "SBB %%C, %%D");
+                            fprintf(stdout, "SBB %%C, %%D\n");
                             if (( C-D-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1353,12 +1381,13 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 case 0x03: {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(stdout, "SBB %%D, %%A");
+                            fprintf(stdout, "SBB %%D, %%A\n");
                             if (( D-A-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1369,7 +1398,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(stdout, "SBB %%D, %%B");
+                            fprintf(stdout, "SBB %%D, %%B\n");
                             if (( D-B-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1380,7 +1409,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(stdout, "SBB %%D, %%C");
+                            fprintf(stdout, "SBB %%D, %%C\n");
                             if (( D-C-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1391,7 +1420,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(stdout, "SBB %%D, %%D");
+                            fprintf(stdout, "SBB %%D, %%D\n");
                             if (( D-D-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1406,6 +1435,7 @@ void math_op(memory RAM, byte op) {
                             break;
                         }
                     }
+                    break;
                 }
                 default: {
                     fprintf(stdout, "Invalid A register, 0x%02X!\n", RegA);
@@ -1537,7 +1567,7 @@ void stack_op(memory RAM, byte op) {
         case 0x10: {
             byte data = getop(RAM);
             write(RAM, (address) SP, data);
-            SP--;
+            *(SP_p) = SP - 1;
             fprintf(stdout, "PSHI $%02X\n", data);
             break;
         }
@@ -1547,28 +1577,28 @@ void stack_op(memory RAM, byte op) {
             switch (reg) {
                 case 0x00: {
                     write(RAM, (address) SP, A);
-                    SP--;
+                    *(SP_p) = SP - 1;
                     fprintf(stdout, "PSHR %%A\n");
                     break;
                 }
 
                 case 0x01: {
                     write(RAM, (address) SP, B);
-                    SP--;
+                    *(SP_p) = SP - 1;
                     fprintf(stdout, "PSHR %%B\n");
                     break;
                 }
 
                 case 0x02: {
                     write(RAM, (address) SP, C);
-                    SP--;
+                    *(SP_p) = SP - 1;
                     fprintf(stdout, "PSHR %%C\n");
                     break;
                 }
 
                 case 0x03: {
                     write(RAM, (address) SP, D);
-                    SP--;
+                    *(SP_p) = SP - 1;
                     fprintf(stdout, "PSHR %%D\n");
                     break;
                 }
@@ -1586,7 +1616,7 @@ void stack_op(memory RAM, byte op) {
             byte reg = getop(RAM);
             switch (reg) {
                 case 0x00: {
-                    SP++;
+                    *(SP_p) = SP + 1;
                     *(A_p) = read(RAM, SP);
                     write(RAM, SP, 0x00);
                     fprintf(stdout, "POP %%A\n");
@@ -1594,7 +1624,7 @@ void stack_op(memory RAM, byte op) {
                 }
 
                 case 0x01: {
-                    SP++;
+                    *(SP_p) = SP + 1;
                     *(B_p) = read(RAM, SP);
                     write(RAM, SP, 0x00);
                     fprintf(stdout, "POP %%B\n");
@@ -1602,7 +1632,7 @@ void stack_op(memory RAM, byte op) {
                 }
 
                 case 0x02: {
-                    SP++;
+                    *(SP_p) = SP + 1;
                     *(C_p) = read(RAM, SP);
                     write(RAM, SP, 0x00);
                     fprintf(stdout, "POP %%C\n");
@@ -1610,7 +1640,7 @@ void stack_op(memory RAM, byte op) {
                 }
 
                 case 0x03: {
-                    SP++;
+                    *(SP_p) = SP + 1;
                     *(D_p) = read(RAM, SP);
                     write(RAM, SP, 0x00);
                     fprintf(stdout, "POP %%D\n");
@@ -1652,9 +1682,9 @@ void jump_op(memory RAM, byte op) {
             address addr = MSB + LSB;
             // Saving the IP
             write(RAM, (address) SP, IP);
-            SP--;
+            *(SP_p) = SP - 1;
             write(RAM, (address) SP, (IP >> 4));
-            SP--;
+            *(SP_p) = SP - 1;
             // Jumping to the addr
             *(IP_p) = addr;
             fprintf(stdout, "CALL $%04X\n", addr);
@@ -1663,11 +1693,11 @@ void jump_op(memory RAM, byte op) {
 
         case 0x15: {
             // Popping  IP
-            SP++;
+            *(SP_p) = SP + 1;
             byte MSB = read(RAM, SP);
             write(RAM, SP, 0x00);
 
-            SP++;
+            *(SP_p) = SP + 1;
             byte LSB = read(RAM, SP);
             write(RAM, SP, 0x00);
 
@@ -1685,7 +1715,7 @@ void jump_op(memory RAM, byte op) {
             MSB = MSB << 8;
             // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
             address addr = MSB + LSB;
-            if (S & 0x02 == 0) {
+            if ((S & 0x02) == 0) {
                 *(IP_p) = addr;
                 fprintf(stdout, "JZ $%04X\n", addr);
                 break;
@@ -1703,7 +1733,7 @@ void jump_op(memory RAM, byte op) {
             MSB = MSB << 8;
             // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
             address addr = MSB + LSB;
-            if (S & 0x02 != 0) {
+            if ((S & 0x02) != 0) {
                 *(IP_p) = addr;
                 fprintf(stdout, "JNZ $%04X\n", addr);
                 break;
@@ -1715,7 +1745,11 @@ void jump_op(memory RAM, byte op) {
     }
 }
 void halt_op() {
-    exit;
+    fprintf(stdout, "General Purpose Registers:\nA: %02X\nB: %02X\nC: %02X\nD: %02X\n", A, B, C, D);
+    fprintf(stdout, "Special Registers:\nS: %02X\nSP: %04X\nIP: %04X\n", S, SP, IP);
+
+    *(S_p) = S | 0x80;
+    return;
 }
 void over_op(memory RAM, byte op) {
     switch (op) {
@@ -1727,7 +1761,7 @@ void over_op(memory RAM, byte op) {
             MSB = MSB << 8;
             // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
             address addr = MSB + LSB;
-            if (S & 0x01 == 0) {
+            if ((S & 0x01) == 0) {
                 *(IP_p) = addr;
                 fprintf(stdout, "JO $%04X\n", addr);
                 break;
@@ -1745,7 +1779,7 @@ void over_op(memory RAM, byte op) {
             MSB = MSB << 8;
             // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
             address addr = MSB + LSB;
-            if (S & 0x01 != 0) {
+            if ((S & 0x01) != 0) {
                 *(IP_p) = addr;
                 fprintf(stdout, "JNO $%04X\n", addr);
                 break;
@@ -1767,7 +1801,7 @@ void status_op(memory RAM, byte op) {
 
         case 0x1C: {
             *(S_p) = S & 0xFE;
-            printf(stdout, "CLRO\n");
+            fprintf(stdout, "CLRO\n");
             break;
         }
 
@@ -1780,7 +1814,7 @@ void status_op(memory RAM, byte op) {
 
         case 0x1E: {
             *(S_p) = S & 0xF;
-            printf(stdout, "CLRZ\n");
+            fprintf(stdout, "CLRZ\n");
             break;
         }
 
@@ -1793,7 +1827,7 @@ void status_op(memory RAM, byte op) {
 
         case 0x20: {
             *(S_p) = S & 0xFB;
-            printf(stdout, "CLRN\n");
+            fprintf(stdout, "CLRN\n");
             break;
         }
 
@@ -1806,7 +1840,7 @@ void status_op(memory RAM, byte op) {
 
         case 0x22: {
             *(S_p) = S & 0xF7;
-            printf(stdout, "CLRP\n");
+            fprintf(stdout, "CLRP\n");
             break;
         }
 
@@ -1819,7 +1853,7 @@ void status_op(memory RAM, byte op) {
 
         case 0x24: {
             *(S_p) = S & 0xEF;
-            printf(stdout, "CLRC\n");
+            fprintf(stdout, "CLRC\n");
             break;
         }
     }
@@ -2253,6 +2287,10 @@ void init(memory RAM) {
         byte opcode = getop(RAM);
         int type = op_type(opcode);
         switch (type) {
+            case -1:
+                continue;
+                break;
+
             case 0:
                 mov_op(RAM, opcode);
                 break;

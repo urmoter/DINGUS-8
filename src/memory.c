@@ -36,5 +36,21 @@ byte read(memory mem, address addr) {
         fprintf(stdout, "RAM not created!\n");
         return 0x00;
     }
-    return *(mem + addr);
+    byte data = *(mem + addr);
+    return data;
+}
+
+void readVROM(memory mem, char* ROMFILE) {
+    FILE* VROM = fopen(ROMFILE, "r");
+    if (VROM == NULL) {
+        fprintf(stdout, "File could not be opened!\n");
+        return;
+    }
+
+    for (int i = 0; i < MAX_16; i++) {
+        byte data = fread((mem + i), 1, 1, VROM);
+    }
+
+    fprintf(stdout, "VROM ACCEPTED\n");
+    return;
 }
