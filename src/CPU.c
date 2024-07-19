@@ -106,6 +106,9 @@ int op_type(byte opcode) {
     if ((opcode > 0x24) && (opcode < 0x29)) {
         return 8;
     }
+    if ((opcode == 0x29) || (opcode == 0x2A)) {
+        return 9;
+    }
 
     fprintf(stderr, "Not a valid opcode!! (0x%02X)\n", opcode);
     return -1;
@@ -158,7 +161,6 @@ void mov_op(memory RAM, byte op) {
                 case 0x00: {
                     // A source cases
                     switch (RegB) {
-                        fprintf(stdout, "REG A: %02X\nREG B: %02X\n", RegA, RegB);
                         case 0x00: {
                             fprintf(stdout, "CPY %%A, %%A\n");
                             if (A == 0x00) {
@@ -1668,7 +1670,7 @@ void jump_op(memory RAM, byte op) {
             // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
             address addr = MSB + LSB;
             *(IP_p) = addr;
-            fprintf(stdout, "JMP $%04X\n", addr);
+            fprintf(stdout, "JMP @%04X\n", addr);
             break;
         }
 
@@ -1687,7 +1689,7 @@ void jump_op(memory RAM, byte op) {
             *(SP_p) = SP - 1;
             // Jumping to the addr
             *(IP_p) = addr;
-            fprintf(stdout, "CALL $%04X\n", addr);
+            fprintf(stdout, "CALL @%04X\n", addr);
             break;
         }
 
@@ -1717,10 +1719,10 @@ void jump_op(memory RAM, byte op) {
             address addr = MSB + LSB;
             if ((S & 0x02) == 0) {
                 *(IP_p) = addr;
-                fprintf(stdout, "JZ $%04X\n", addr);
+                fprintf(stdout, "JZ @%04X\n", addr);
                 break;
             } else {
-                fprintf(stdout, "JZ $%04X\n", addr);
+                fprintf(stdout, "JZ @%04X\n", addr);
                 break;
             }
         }
@@ -1735,10 +1737,10 @@ void jump_op(memory RAM, byte op) {
             address addr = MSB + LSB;
             if ((S & 0x02) != 0) {
                 *(IP_p) = addr;
-                fprintf(stdout, "JNZ $%04X\n", addr);
+                fprintf(stdout, "JNZ @%04X\n", addr);
                 break;
             } else {
-                fprintf(stdout, "JNZ $%04X\n", addr);
+                fprintf(stdout, "JNZ @%04X\n", addr);
                 break;
             }
         }
@@ -1763,10 +1765,10 @@ void over_op(memory RAM, byte op) {
             address addr = MSB + LSB;
             if ((S & 0x01) == 0) {
                 *(IP_p) = addr;
-                fprintf(stdout, "JO $%04X\n", addr);
+                fprintf(stdout, "JO @%04X\n", addr);
                 break;
             } else {
-                fprintf(stdout, "JO $%04X\n", addr);
+                fprintf(stdout, "JO @%04X\n", addr);
                 break;
             }
         }
@@ -1781,10 +1783,10 @@ void over_op(memory RAM, byte op) {
             address addr = MSB + LSB;
             if ((S & 0x01) != 0) {
                 *(IP_p) = addr;
-                fprintf(stdout, "JNO $%04X\n", addr);
+                fprintf(stdout, "JNO @%04X\n", addr);
                 break;
             } else {
-                fprintf(stdout, "JNO $%04X\n", addr);
+                fprintf(stdout, "JNO @%04X\n", addr);
                 break;
             }
         }
@@ -2274,6 +2276,324 @@ void logic_op(memory RAM, byte op) {
         }
     }
 }
+void equal_op(memory RAM, byte op) {
+    switch (op) {
+        case 0x29: {
+            // Halves of the address
+            byte LSB = getop(RAM);
+            byte MSB = getop(RAM);
+             // shift the MSB 8 bits left so (--------)00000000 is MSB
+            MSB = MSB << 8;
+            // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
+            address addr = MSB + LSB;
+
+            byte RegA = getop(RAM);
+            byte RegB = getop(RAM);
+
+            switch (RegA) {
+                case 0x00: {
+                    // A source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "JE @%04X, %%A, %%A\n");
+                            *(IP_p) = addr;
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "JE @%04X, %%A, %%B\n");
+                            if (A == B) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "JE @%04X, %%A, %%C\n");
+                            if (A == C) {
+                                *(IP_p) = addr;
+                            }
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "JE @%04X, %%A, %%D\n");
+                            if (A == D) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }   
+                    }
+                    break;
+                }
+                case 0x01: {
+                    // B source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "JE @%04X, %%B, %%A\n");
+                            if (B == A) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "JE @%04X, %%B, %%B\n");
+                            *(IP_p) = addr;
+                            
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "JE @%04X, %%B, %%C\n");
+                            if (B == C) {
+                                *(IP_p) = addr;
+                            }
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "JE @%04X, %%B, %%D\n");
+                            if (B == D) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case 0x02: {
+                    // C source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "JE @%04X, %%C, %%A\n");
+                            if (C == A) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "JE @%04X, %%C, %%B\n");
+                            if (C == B) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "JE @%04X, %%C, %%C\n");
+                            *(IP_p) = addr;
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "JE @%04X, %%C, %%D\n");
+                            if (C == D) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case 0x03: {
+                    // D source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "JE @%04X, %%D, %%A\n");
+                            if (D == A) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "JE @%04X, %%D, %%B\n");
+                            if (D == B) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "JE @%04X, %%D, %%C\n");
+                            if (D == C) {
+                                *(IP_p) = addr;
+                            }
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "JE @%04X, %%D, %%D\n");
+                            *(IP_p) = addr;
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }   
+                    }
+                }
+                default: {
+                    fprintf(stdout, "Invalid A register, 0x%02X!\n", RegA);
+                    break;
+                }
+            }
+        }
+        
+        case 0x2A: {
+            // Halves of the address
+            byte LSB = getop(RAM);
+            byte MSB = getop(RAM);
+             // shift the MSB 8 bits left so (--------)00000000 is MSB
+            MSB = MSB << 8;
+            // add the MSB (--------)00000000 and LSB 00000000(--------) to make (MSB)(LSB)
+            address addr = MSB + LSB;
+
+            byte RegA = getop(RAM);
+            byte RegB = getop(RAM);
+
+            switch (RegA) {
+                case 0x00: {
+                    // A source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "JNE @%04X, %%A, %%A\n");
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "JNE @%04X, %%A, %%B\n");
+                            if (A != B) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "JNE @%04X, %%A, %%C\n");
+                            if (A != C) {
+                                *(IP_p) = addr;
+                            }
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "JNE @%04X, %%A, %%D\n");
+                            if (A != D) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }   
+                    }
+                    break;
+                }
+                case 0x01: {
+                    // B source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "JNE @%04X, %%B, %%A\n");
+                            if (B != A) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "JNE @%04X, %%B, %%B\n");
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "JNE @%04X, %%B, %%C\n");
+                            if (B != C) {
+                                *(IP_p) = addr;
+                            }
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "JE @%04X, %%B, %%D\n");
+                            if (B != D) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case 0x02: {
+                    // C source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "JNE @%04X, %%C, %%A\n");
+                            if (C != A) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "JNE @%04X, %%C, %%B\n");
+                            if (C != B) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "JNE @%04X, %%C, %%C\n");
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "JNE @%04X, %%C, %%D\n");
+                            if (C != D) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case 0x03: {
+                    // D source cases
+                    switch (RegB) {
+                        case 0x00: {
+                            fprintf(stdout, "JNE @%04X, %%D, %%A\n");
+                            if (D != A) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        case 0x01: {
+                            fprintf(stdout, "JNE @%04X, %%D, %%B\n");
+                            if (D != B) {
+                                *(IP_p) = addr;
+                            }
+                            break;
+                        }
+                        case 0x02: {
+                            fprintf(stdout, "JNE @%04X, %%D, %%C\n");
+                            if (D != C) {
+                                *(IP_p) = addr;
+                            }
+                        }
+                        case 0x03: {
+                            fprintf(stdout, "JNE @%04X, %%D, %%D\n");
+                            break;
+                        }
+                        default: {
+                            fprintf(stdout, "Invalid B register, 0x%02X!\n", RegB);
+                            break;
+                        }   
+                    }
+                }
+                default: {
+                    fprintf(stdout, "Invalid A register, 0x%02X!\n", RegA);
+                    break;
+                }
+            }
+        }
+    }
+}
 
 void init(memory RAM) {
     // Get the start address
@@ -2325,6 +2645,9 @@ void init(memory RAM) {
 
             case 8:
                 logic_op(RAM, opcode);
+                break;
+            case 9:
+                equal_op(RAM, opcode);
                 break;
         }
     }

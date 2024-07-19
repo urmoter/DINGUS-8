@@ -12,6 +12,9 @@ S (status)
 16-bit register:
 IP (16-bit, holds current address)
 
+0xFFFE and 0xFFFF make the starting IP location:
+    (0xFFFE)(0xFFFF)
+
 Access up-to 0xFFFF (2^16) in memory
 0xFFFF +—————+
        |START| (Where to start executing.)
@@ -39,6 +42,8 @@ Assembly syntax:
     Data prepended with $ and written in hex.
     Registers prepended with %.
     Comments indicated with //.
+    Loop names begin with _.
+    Compiler directive starts with .
 
 Instructions:
 -NOP——————————————————————————————————————————————————————————————————
@@ -54,7 +59,7 @@ Instructions:
 0x07: LDR (IMM16)ADR, (REG8): Copy data from ADR to REG [Z].
 —MATH—————————————————————————————————————————————————————————————————
 0x08: ADD (REG8)A, (REG8)B: Add A to B and store in B [C, Z].
-0x09: SUB (REG8)A, (REG8)B: Subtract A from B and store in N [Z, N].
+0x09: SUB (REG8)A, (REG8)B: Subtract A from B and store in B [Z, N].
 0x0A: INC (REG8): Increment REG by 1 [Z, C].
 0x0B: DEC (REG8): Decrement REG by 1 [Z, N].
 0x0C: ADC (REG8)A, (REG8)B: Add A and (C) to B and store in B [Z, C].
@@ -65,7 +70,7 @@ Instructions:
 0x10: PSHI (IMM8):
 	Set data at SP to IMM8.
 	Decrement SP.
-x11: PSHR (REG):
+0x11: PSHR (REG):
 	Set data at SP to the value of REG.
 	Decrement SP.
 0x12: POP (REG): [Z]
@@ -80,13 +85,13 @@ x11: PSHR (REG):
 0x17: JNZ (IMM16)ADR: Jump to ADR if Zero (Z) is not set.
 -END——————————————————————————————————————————————————————————————————
 0x18: HLT: [H]
-Set H.
+    Set H.
 	Ignore the clock signal.
 	Quit (If in Emulator).
 	Must reset to undo!
 -OVERFLOW—————————————————————————————————————————————————————————————
 0x19: JO: (IMM16)ADR: Jump to ADR if Overflow (O) is set.
-0x1A: JNO:(IMM16)ADR: Jump to ADR if Overflow (O) is not set.
+0x1A: JNO: (IMM16)ADR: Jump to ADR if Overflow (O) is not set.
 -STATUS———————————————————————————————————————————————————————————————
 0x1B: SETO: Set Overflow [O].
 0x1C: CLRO: Clear Overflow [O].
@@ -103,3 +108,6 @@ Set H.
 0x26: OR (REG8)A, (REG8)B: Bitwise OR A and B and store in A.
 0x27: XOR (REG8)A, (REG8)B: Bitwise XOR A and B and store in A.
 0x28: NOT (REG8): Invert A and store in A.
+-EQUAL————————————————————————————————————————————————————————————————
+0x29: JE (IMM16)ADR, (REG8)A, (REG8)B: Jump to ADR if A and B are equal.
+0x2A: JNE (IMM16)ADR: (IMM16)ADR, (REG8)A, (REG8)B: Jump to ADR if A and B are not equal.

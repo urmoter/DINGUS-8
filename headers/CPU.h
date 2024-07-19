@@ -14,6 +14,7 @@ void halt_op();
 void over_op(memory RAM, byte op);
 void status_op(memory RAM, byte op);
 void logic_op(memory RAM, byte op);
+void equal_op(memory RAM, byte op);
 
 void init(memory RAM);
 

@@ -4,7 +4,7 @@
 
 int main() {
     memory RAM = create_RAM();
-    readVROM(RAM, "ROM.bin");
+    readVROM(RAM, "Prime.bin");
 
     init(RAM);
     return 0;
