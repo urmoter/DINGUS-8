@@ -15,6 +15,8 @@ IP (16-bit, holds current address)
 0xFFFE and 0xFFFF make the starting IP location:
     (0xFFFE)(0xFFFF)
 
+0xFFFD is the Terminal buffer
+
 Access up-to 0xFFFF (2^16) in memory
 0xFFFF +—————+
        |START| (Where to start executing.)
@@ -26,14 +28,14 @@ Access up-to 0xFFFF (2^16) in memory
 
  7 6 5 4 3 2 1 0
 +-+-+-+-+-+-+-+-+
-|H| | |C|P|N|Z|O|
+|H|-|T|C|P|N|Z|O|
 +-+-+-+-+-+-+-+-+
 	0x0: Overflow, set when a register exceeds 0xFF and wraps around.
 	0x1: Zero, set if a register receives a 0x00 value.
 	0x2: Negative, Overflow in Subtraction.
 	0x3: Parity, 1 if odd, 0 if even number of bits.
 	0x4: Carry, Overflow in Addition.
-	0x5: Unused
+	0x5: Terminal, Activate while printing to the Terminal memory address.
 	0x6: Unused
 	0x7: Halt, set when HLT (0x14) is called, clock will be ignored.
 
@@ -43,7 +45,7 @@ Assembly syntax:
     Registers prepended with %.
     Comments indicated with //.
     Loop names begin with _.
-    Compiler directive starts with .
+    Compiler directives starts with .
 
 Instructions:
 -NOP——————————————————————————————————————————————————————————————————
@@ -103,11 +105,18 @@ Instructions:
 0x22: CLRP: Clear Parity [P].
 0x23: SETC: Set Carry [C]
 0x24: CLRC: Clear Carry [C]
--LOGIC————————————————————————————————————————————————————————————————
+—LOGIC————————————————————————————————————————————————————————————————
 0x25: AND (REG8)A, (REG8)B: Bitwise AND A and B and store in A.
 0x26: OR (REG8)A, (REG8)B: Bitwise OR A and B and store in A.
 0x27: XOR (REG8)A, (REG8)B: Bitwise XOR A and B and store in A.
 0x28: NOT (REG8): Invert A and store in A.
--EQUAL————————————————————————————————————————————————————————————————
+—EQUAL————————————————————————————————————————————————————————————————
 0x29: JE (IMM16)ADR, (REG8)A, (REG8)B: Jump to ADR if A and B are equal.
-0x2A: JNE (IMM16)ADR: (IMM16)ADR, (REG8)A, (REG8)B: Jump to ADR if A and B are not equal.
+0x2A: JNE (IMM16)ADR, (REG8)A, (REG8)B, (REG8)B: Jump to ADR if A and B are not equal.
+—INEQUALITY———————————————————————————————————————————————————————————
+0x2B: JG (IMM16)ADR (REG8)A, (REG8)B, (REG8)B: Jump to ADR if A>B
+0x2C: JL (IMM16)ADR (REG8)A, (REG8)B, (REG8)B: Jump to ADR if A<B
+—PRINT————————————————————————————————————————————————————————————————
+0x2D: PRNI (IMM8)VAL: Set 0xFFFD to VAL, and set the Terminal flag [T].
+0x2E: PRNR (REG8)REG: Set 0xFFFD to the value of REG and set the Terminal flag [T].
+0x2F: ENPR: Clear the Terminal flag (Required when done printing) [T].
