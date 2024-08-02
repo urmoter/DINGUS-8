@@ -168,14 +168,14 @@ void mov_op(memory RAM, byte op, FILE* log) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "CPY %%A, %%A\n");
+                            fprintf(log, "CPY %%A %%A\n");
                             if (A == 0x00) {
                                 (*S_p) = S | 0x02;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "CPY %%A, %%B\n");
+                            fprintf(log, "CPY %%A %%B\n");
                             (*B_p) = A;
                             if (B == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -183,7 +183,7 @@ void mov_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "CPY %%A, %%C\n");
+                            fprintf(log, "CPY %%A %%C\n");
                             (*C_p) = A;
                             if (C == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -191,7 +191,7 @@ void mov_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "CPY %%A, %%D\n");
+                            fprintf(log, "CPY %%A %%D\n");
                             (*D_p) = A;
                             if (D == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -209,7 +209,7 @@ void mov_op(memory RAM, byte op, FILE* log) {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "CPY %%B, %%A\n");
+                            fprintf(log, "CPY %%B %%A\n");
                             (*A_p) = B;
                             if (A == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -217,14 +217,14 @@ void mov_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "CPY %%B, %%B\n");
+                            fprintf(log, "CPY %%B %%B\n");
                             if (B == 0x00) {
                                 (*S_p) = S | 0x02;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "CPY %%B, %%C\n");
+                            fprintf(log, "CPY %%B %%C\n");
                             (*C_p) = B;
                             if (C == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -232,7 +232,7 @@ void mov_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "CPY %%B, %%D\n");
+                            fprintf(log, "CPY %%B %%D\n");
                             (*D_p) = B;
                             if (D == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -250,7 +250,7 @@ void mov_op(memory RAM, byte op, FILE* log) {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "CPY %%C, %%A\n");
+                            fprintf(log, "CPY %%C %%A\n");
                             (*A_p) = C;
                             if (A == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -258,7 +258,7 @@ void mov_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "CPY %%C, %%B\n");
+                            fprintf(log, "CPY %%C %%B\n");
                             (*B_p) = C;
                             if (B == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -266,14 +266,14 @@ void mov_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "CPY %%C, %%C\n");
+                            fprintf(log, "CPY %%C %%C\n");
                             if (C == 0x00) {
                                 (*S_p) = S | 0x02;
                             }
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "CPY %%C, %%D\n");
+                            fprintf(log, "CPY %%C %%D\n");
                             (*D_p) = C;
                             if (D == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -291,7 +291,7 @@ void mov_op(memory RAM, byte op, FILE* log) {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "CPY %%D, %%A\n");
+                            fprintf(log, "CPY %%D %%A\n");
                             (*A_p) = D;
                             if (A == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -299,7 +299,7 @@ void mov_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "CPY %%D, %%B\n");
+                            fprintf(log, "CPY %%D %%B\n");
                             (*B_p) = D;
                             if (B == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -307,7 +307,7 @@ void mov_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "CPY %%D, %%C\n");
+                            fprintf(log, "CPY %%D %%C\n");
                             (*C_p) = D;
                             if (C == 0x00) {
                                 (*S_p) = S | 0x02;
@@ -315,7 +315,7 @@ void mov_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "CPY %%D, %%D\n");
+                            fprintf(log, "CPY %%D %%D\n");
                             if (D == 0x00) {
                                 (*S_p) = S | 0x02;
                             }
@@ -352,7 +352,7 @@ void mem_op(memory RAM, byte op, FILE* log) {
 
             switch (Reg) {
                 case 0x00: {
-                    fprintf(log, "STR %%A, @%04X\n", addr);
+                    fprintf(log, "STR %%A @%04X\n", addr);
                     write(RAM, addr, A);
                     if (A == 0x00) {
                         (*S_p) = S | 0x02;
@@ -360,7 +360,7 @@ void mem_op(memory RAM, byte op, FILE* log) {
                     break;
                 }
                 case 0x01: {
-                    fprintf(log, "STR %%B, @%04X\n", addr);
+                    fprintf(log, "STR %%B @%04X\n", addr);
                     write(RAM, addr, B);
                     if (B == 0x00) {
                         (*S_p) = S | 0x02;
@@ -368,7 +368,7 @@ void mem_op(memory RAM, byte op, FILE* log) {
                     break;
                 }
                 case 0x02: {
-                    fprintf(log, "STR %%C, @%04X\n", addr);
+                    fprintf(log, "STR %%C @%04X\n", addr);
                     write(RAM, addr, C);
                     if (C == 0x00) {
                         (*S_p) = S | 0x02;
@@ -376,7 +376,7 @@ void mem_op(memory RAM, byte op, FILE* log) {
                     break;
                 }
                 case 0x03: {
-                    fprintf(log, "STR %%D, @%04X\n", addr);
+                    fprintf(log, "STR %%D @%04X\n", addr);
                     write(RAM, addr, D);
                     if (D == 0x00) {
                         (*S_p) = S | 0x02;
@@ -405,7 +405,7 @@ void mem_op(memory RAM, byte op, FILE* log) {
 
             switch (Reg) {
                 case 0x00: {
-                    fprintf(log, "LDR @%04X, %%A\n", addr);
+                    fprintf(log, "LDR @%04X %%A\n", addr);
                     (*A_p) = read(RAM, addr);
                     if (A == 0x00) {
                         (*S_p) = S | 0x02;
@@ -413,7 +413,7 @@ void mem_op(memory RAM, byte op, FILE* log) {
                     break;
                 }
                 case 0x01: {
-                    fprintf(log, "LDR @%04X, %%B\n", addr);
+                    fprintf(log, "LDR @%04X %%B\n", addr);
                     (*B_p) = read(RAM, addr);
                     if (B == 0x00) {
                         (*S_p) = S | 0x02;
@@ -421,7 +421,7 @@ void mem_op(memory RAM, byte op, FILE* log) {
                     break;
                 }
                 case 0x02: {
-                    fprintf(log, "LDR @%04X, %%C\n", addr);
+                    fprintf(log, "LDR @%04X %%C\n", addr);
                     (*C_p) = read(RAM, addr);
                     if (C == 0x00) {
                         (*S_p) = S | 0x02;
@@ -429,7 +429,7 @@ void mem_op(memory RAM, byte op, FILE* log) {
                     break;
                 }
                 case 0x03: {
-                    fprintf(log, "LDR @%04X, %%D\n", addr);
+                    fprintf(log, "LDR @%04X %%D\n", addr);
                     (*D_p) = read(RAM, addr);
                     if (D == 0x00) {
                         (*S_p) = S | 0x02;
@@ -457,7 +457,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "ADD %%A, %%A\n");
+                            fprintf(log, "ADD %%A %%A\n");
                             if (( A+A) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -468,7 +468,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "ADD %%A, %%B\n");
+                            fprintf(log, "ADD %%A %%B\n");
                             if (( A+B) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -479,7 +479,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "ADD %%A, %%C\n");
+                            fprintf(log, "ADD %%A %%C\n");
                             if (( A+C) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -490,7 +490,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "ADD %%A, %%D\n");
+                            fprintf(log, "ADD %%A %%D\n");
                             if (( A+D) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -511,7 +511,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "ADD %%B, %%A\n");
+                            fprintf(log, "ADD %%B %%A\n");
                             if (( B+A) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -522,7 +522,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "ADD %%B, %%B\n");
+                            fprintf(log, "ADD %%B %%B\n");
                             if (( B+B) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -533,7 +533,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "ADD %%B, %%C\n");
+                            fprintf(log, "ADD %%B %%C\n");
                             if (( B+C) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -544,7 +544,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "ADD %%B, %%D\n");
+                            fprintf(log, "ADD %%B %%D\n");
                             if (( B+D) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -565,7 +565,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "ADD %%C, %%A\n");
+                            fprintf(log, "ADD %%C %%A\n");
                             if (( C+A) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -576,7 +576,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "ADD %%C, %%B\n");
+                            fprintf(log, "ADD %%C %%B\n");
                             if (( C+B) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -587,7 +587,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "ADD %%C, %%C\n");
+                            fprintf(log, "ADD %%C %%C\n");
                             if (( C+C) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -598,7 +598,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "ADD %%C, %%D\n");
+                            fprintf(log, "ADD %%C %%D\n");
                             if (( C+D) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -619,7 +619,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "ADD %%D, %%A\n");
+                            fprintf(log, "ADD %%D %%A\n");
                             if (( D+A) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -630,7 +630,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "ADD %%D, %%B\n");
+                            fprintf(log, "ADD %%D %%B\n");
                             if (( D+B) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -641,7 +641,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "ADD %%D, %%C\n");
+                            fprintf(log, "ADD %%D %%C\n");
                             if (( D+C) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -652,7 +652,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "ADD %%D, %%D\n");
+                            fprintf(log, "ADD %%D %%D\n");
                             if (( D+D) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -685,7 +685,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "SUB %%A, %%A\n");
+                            fprintf(log, "SUB %%A %%A\n");
                             if (( A-A) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -696,7 +696,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "SUB %%A, %%B\n");
+                            fprintf(log, "SUB %%A %%B\n");
                             if (( A-B) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -707,7 +707,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "SUB %%A, %%C\n");
+                            fprintf(log, "SUB %%A %%C\n");
                             if (( A-C) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -718,7 +718,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "SUB %%A, %%D\n");
+                            fprintf(log, "SUB %%A %%D\n");
                             if (( A-D) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -739,7 +739,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "SUB %%B, %%A\n");
+                            fprintf(log, "SUB %%B %%A\n");
                             if (( B-A) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -750,7 +750,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "SUB %%B, %%B\n");
+                            fprintf(log, "SUB %%B %%B\n");
                             if (( B-B) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -761,7 +761,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "SUB %%B, %%C\n");
+                            fprintf(log, "SUB %%B %%C\n");
                             if (( B-C) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -772,7 +772,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "SUB %%B, %%D\n");
+                            fprintf(log, "SUB %%B %%D\n");
                             if (( B-D) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -793,7 +793,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "SUB %%C, %%A\n");
+                            fprintf(log, "SUB %%C %%A\n");
                             if (( C-A) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -804,7 +804,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "SUB %%C, %%B\n");
+                            fprintf(log, "SUB %%C %%B\n");
                             if (( C-B) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -815,7 +815,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "SUB %%C, %%C\n");
+                            fprintf(log, "SUB %%C %%C\n");
                             if (( C-C) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -826,7 +826,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "SUB %%C, %%D\n");
+                            fprintf(log, "SUB %%C %%D\n");
                             if (( C-D) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -847,7 +847,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "SUB %%D, %%A\n");
+                            fprintf(log, "SUB %%D %%A\n");
                             if (( D-A) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -858,7 +858,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "SUB %%D, %%B\n");
+                            fprintf(log, "SUB %%D %%B\n");
                             if (( D-B) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -869,7 +869,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "SUB %%D, %%C\n");
+                            fprintf(log, "SUB %%D %%C\n");
                             if (( D-C) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -880,7 +880,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "SUB %%D, %%D\n");
+                            fprintf(log, "SUB %%D %%D\n");
                             if (( D-D) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1003,7 +1003,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "ADC %%A, %%A\n");
+                            fprintf(log, "ADC %%A %%A\n");
                             if (( A+A+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1014,7 +1014,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "ADC %%A, %%B\n");
+                            fprintf(log, "ADC %%A %%B\n");
                             if (( A+B+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1025,7 +1025,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "ADC %%A, %%C\n");
+                            fprintf(log, "ADC %%A %%C\n");
                             if (( A+C+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1036,7 +1036,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "ADC %%A, %%D\n");
+                            fprintf(log, "ADC %%A %%D\n");
                             if (( A+D+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1057,7 +1057,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "ADC %%B, %%A\n");
+                            fprintf(log, "ADC %%B %%A\n");
                             if (( B+A+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1068,7 +1068,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "ADC %%B, %%B\n");
+                            fprintf(log, "ADC %%B %%B\n");
                             if (( B+B+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1079,7 +1079,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "ADC %%B, %%C\n");
+                            fprintf(log, "ADC %%B %%C\n");
                             if (( B+C+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1090,7 +1090,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "ADC %%B, %%D\n");
+                            fprintf(log, "ADC %%B %%D\n");
                             if (( B+D+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1111,7 +1111,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "ADC %%C, %%A\n");
+                            fprintf(log, "ADC %%C %%A\n");
                             if (( C+A+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1122,7 +1122,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "ADC %%C, %%B\n");
+                            fprintf(log, "ADC %%C %%B\n");
                             if (( C+B+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1133,7 +1133,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "ADC %%C, %%C\n");
+                            fprintf(log, "ADC %%C %%C\n");
                             if (( C+C+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1144,7 +1144,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "ADC %%C, %%D\n");
+                            fprintf(log, "ADC %%C %%D\n");
                             if (( C+D+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1165,7 +1165,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "ADC %%D, %%A\n");
+                            fprintf(log, "ADC %%D %%A\n");
                             if (( D+A+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1176,7 +1176,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "ADC %%D, %%B\n");
+                            fprintf(log, "ADC %%D %%B\n");
                             if (( D+B+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1187,7 +1187,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "ADC %%D, %%C\n");
+                            fprintf(log, "ADC %%D %%C\n");
                             if (( D+C+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1198,7 +1198,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "ADC %%D, %%D\n");
+                            fprintf(log, "ADC %%D %%D\n");
                             if (( D+D+carry) > 0xFF) {
                                 (*S_p) = S | 0x10;
                             }
@@ -1233,7 +1233,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "SBB %%A, %%A\n");
+                            fprintf(log, "SBB %%A %%A\n");
                             if (( A-A-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1244,7 +1244,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "SBB %%A, %%B\n");
+                            fprintf(log, "SBB %%A %%B\n");
                             if (( A-B-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1255,7 +1255,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "SBB %%A, %%C\n");
+                            fprintf(log, "SBB %%A %%C\n");
                             if (( A-C-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1266,7 +1266,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "SBB %%A, %%D\n");
+                            fprintf(log, "SBB %%A %%D\n");
                             if (( A-D-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1287,7 +1287,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "SBB %%B, %%A\n");
+                            fprintf(log, "SBB %%B %%A\n");
                             if (( B-A-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1298,7 +1298,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "SBB %%B, %%B\n");
+                            fprintf(log, "SBB %%B %%B\n");
                             if (( B-B-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1309,7 +1309,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "SBB %%B, %%C\n");
+                            fprintf(log, "SBB %%B %%C\n");
                             if (( B-C-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1320,7 +1320,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "SBB %%B, %%D\n");
+                            fprintf(log, "SBB %%B %%D\n");
                             if (( B-D-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1341,7 +1341,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "SBB %%C, %%A\n");
+                            fprintf(log, "SBB %%C %%A\n");
                             if (( C-A-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1352,7 +1352,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "SBB %%C, %%B\n");
+                            fprintf(log, "SBB %%C %%B\n");
                             if (( C-B-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1363,7 +1363,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "SBB %%C, %%C\n");
+                            fprintf(log, "SBB %%C %%C\n");
                             if (( C-C-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1374,7 +1374,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "SBB %%C, %%D\n");
+                            fprintf(log, "SBB %%C %%D\n");
                             if (( C-D-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1395,7 +1395,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "SBB %%D, %%A\n");
+                            fprintf(log, "SBB %%D %%A\n");
                             if (( D-A-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1406,7 +1406,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "SBB %%D, %%B\n");
+                            fprintf(log, "SBB %%D %%B\n");
                             if (( D-B-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1417,7 +1417,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "SBB %%D, %%C\n");
+                            fprintf(log, "SBB %%D %%C\n");
                             if (( D-C-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1428,7 +1428,7 @@ void math_op(memory RAM, byte op, FILE* log) {
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "SBB %%D, %%D\n");
+                            fprintf(log, "SBB %%D %%D\n");
                             if (( D-D-borrow) >= 0x80) {
                                 (*S_p) = S | 0x04;
                             }
@@ -1878,21 +1878,21 @@ void logic_op(memory RAM, byte op, FILE* log) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "AND %%A, %%A");
+                            fprintf(log, "AND %%A %%A");
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "AND %%A, %%B");
+                            fprintf(log, "AND %%A %%B");
                             *(A_p) = A & B;
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "AND %%A, %%C");
+                            fprintf(log, "AND %%A %%C");
                             *(A_p) = A & C;
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "AND %%A, %%D");
+                            fprintf(log, "AND %%A %%D");
                             *(A_p) = A & D;
                             break;
                         }
@@ -1906,21 +1906,21 @@ void logic_op(memory RAM, byte op, FILE* log) {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "AND %%B, %%A");
+                            fprintf(log, "AND %%B %%A");
                             *(B_p) = B & A;
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "AND %%B, %%B");\
+                            fprintf(log, "AND %%B %%B");\
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "AND %%B, %%C");
+                            fprintf(log, "AND %%B %%C");
                             *(B_p) = B & C;
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "AND %%B, %%D");
+                            fprintf(log, "AND %%B %%D");
                             *(B_p) = B & D;
                             break;
                         }
@@ -1934,21 +1934,21 @@ void logic_op(memory RAM, byte op, FILE* log) {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "AND %%C, %%A");
+                            fprintf(log, "AND %%C %%A");
                             *(C_p) = C & A;
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "AND %%C, %%B");
+                            fprintf(log, "AND %%C %%B");
                             *(C_p) = C & B;
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "AND %%C, %%C");
+                            fprintf(log, "AND %%C %%C");
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "AND %%C, %%D");
+                            fprintf(log, "AND %%C %%D");
                             *(C_p) = C & D;
                             break;
                         }
@@ -1962,22 +1962,22 @@ void logic_op(memory RAM, byte op, FILE* log) {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "AND %%D, %%A");
+                            fprintf(log, "AND %%D %%A");
                             *(D_p) = D & A;
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "AND %%D, %%B");
+                            fprintf(log, "AND %%D %%B");
                             *(D_p) = D & B;
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "AND %%D, %%C");
+                            fprintf(log, "AND %%D %%C");
                             *(D_p) = D & C;
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "AND %%D, %%D");
+                            fprintf(log, "AND %%D %%D");
                             break;
                         }
                         default: {
@@ -2004,21 +2004,21 @@ void logic_op(memory RAM, byte op, FILE* log) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "OR %%A, %%A");
+                            fprintf(log, "OR %%A %%A");
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "OR %%A, %%B");
+                            fprintf(log, "OR %%A %%B");
                             *(A_p) = A | B;
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "OR %%A, %%C");
+                            fprintf(log, "OR %%A %%C");
                             *(A_p) = A | C;
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "OR %%A, %%D");
+                            fprintf(log, "OR %%A %%D");
                             *(A_p) = A | D;
                             break;
                         }
@@ -2032,21 +2032,21 @@ void logic_op(memory RAM, byte op, FILE* log) {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "OR %%B, %%A");
+                            fprintf(log, "OR %%B %%A");
                             *(B_p) = B | A;
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "OR %%B, %%B");\
+                            fprintf(log, "OR %%B %%B");\
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "OR %%B, %%C");
+                            fprintf(log, "OR %%B %%C");
                             *(B_p) = B | C;
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "OR %%B, %%D");
+                            fprintf(log, "OR %%B %%D");
                             *(B_p) = B | D;
                             break;
                         }
@@ -2060,21 +2060,21 @@ void logic_op(memory RAM, byte op, FILE* log) {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "OR %%C, %%A");
+                            fprintf(log, "OR %%C %%A");
                             *(C_p) = C | A;
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "OR %%C, %%B");
+                            fprintf(log, "OR %%C %%B");
                             *(C_p) = C | B;
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "OR %%C, %%C");
+                            fprintf(log, "OR %%C %%C");
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "OR %%C, %%D");
+                            fprintf(log, "OR %%C %%D");
                             *(C_p) = C | D;
                             break;
                         }
@@ -2088,22 +2088,22 @@ void logic_op(memory RAM, byte op, FILE* log) {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "OR %%D, %%A");
+                            fprintf(log, "OR %%D %%A");
                             *(D_p) = D | A;
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "OR %%D, %%B");
+                            fprintf(log, "OR %%D %%B");
                             *(D_p) = D | B;
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "OR %%D, %%C");
+                            fprintf(log, "OR %%D %%C");
                             *(D_p) = D | C;
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "OR %%D, %%D");
+                            fprintf(log, "OR %%D %%D");
                             break;
                         }
                         default: {
@@ -2130,21 +2130,21 @@ void logic_op(memory RAM, byte op, FILE* log) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "XOR %%A, %%A");
+                            fprintf(log, "XOR %%A %%A");
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "XOR %%A, %%B");
+                            fprintf(log, "XOR %%A %%B");
                             *(A_p) = A ^ B;
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "XOR %%A, %%C");
+                            fprintf(log, "XOR %%A %%C");
                             *(A_p) = A ^ C;
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "XOR %%A, %%D");
+                            fprintf(log, "XOR %%A %%D");
                             *(A_p) = A ^ D;
                             break;
                         }
@@ -2158,21 +2158,21 @@ void logic_op(memory RAM, byte op, FILE* log) {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "XOR %%B, %%A");
+                            fprintf(log, "XOR %%B %%A");
                             *(B_p) = B ^ A;
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "XOR %%B, %%B");\
+                            fprintf(log, "XOR %%B %%B");\
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "XOR %%B, %%C");
+                            fprintf(log, "XOR %%B %%C");
                             *(B_p) = B ^ C;
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "XOR %%B, %%D");
+                            fprintf(log, "XOR %%B %%D");
                             *(B_p) = B ^ D;
                             break;
                         }
@@ -2186,21 +2186,21 @@ void logic_op(memory RAM, byte op, FILE* log) {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "XOR %%C, %%A");
+                            fprintf(log, "XOR %%C %%A");
                             *(C_p) = C ^ A;
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "XOR %%C, %%B");
+                            fprintf(log, "XOR %%C %%B");
                             *(C_p) = C ^ B;
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "XOR %%C, %%C");
+                            fprintf(log, "XOR %%C %%C");
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "XOR %%C, %%D");
+                            fprintf(log, "XOR %%C %%D");
                             *(C_p) = C ^ D;
                             break;
                         }
@@ -2214,22 +2214,22 @@ void logic_op(memory RAM, byte op, FILE* log) {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "XOR %%D, %%A");
+                            fprintf(log, "XOR %%D %%A");
                             *(D_p) = D ^ A;
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "XOR %%D, %%B");
+                            fprintf(log, "XOR %%D %%B");
                             *(D_p) = D ^ B;
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "XOR %%D, %%C");
+                            fprintf(log, "XOR %%D %%C");
                             *(D_p) = D ^ C;
                             break;
                         }
                         case 0x03: {
-                            fprintf(log, "XOR %%D, %%D");
+                            fprintf(log, "XOR %%D %%D");
                             break;
                         }
                         default: {
@@ -2301,25 +2301,25 @@ void equal_op(memory RAM, byte op, FILE* log) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JE @%04X, %%A, %%A\n", addr);
+                            fprintf(log, "JE @%04X %%A %%A\n", addr);
                             *(IP_p) = addr;
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JE @%04X, %%A, %%B\n", addr);
+                            fprintf(log, "JE @%04X %%A %%B\n", addr);
                             if (A == B) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JE @%04X, %%A, %%C\n", addr);
+                            fprintf(log, "JE @%04X %%A %%C\n", addr);
                             if (A == C) {
                                 *(IP_p) = addr;
                             }
                         }
                         case 0x03: {
-                            fprintf(log, "JE @%04X, %%A, %%D\n", addr);
+                            fprintf(log, "JE @%04X %%A %%D\n", addr);
                             if (A == D) {
                                 *(IP_p) = addr;
                             }
@@ -2336,26 +2336,26 @@ void equal_op(memory RAM, byte op, FILE* log) {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JE @%04X, %%B, %%A\n", addr);
+                            fprintf(log, "JE @%04X %%B %%A\n", addr);
                             if (B == A) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JE @%04X, %%B, %%B\n", addr);
+                            fprintf(log, "JE @%04X %%B %%B\n", addr);
                             *(IP_p) = addr;
                             
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JE @%04X, %%B, %%C\n", addr);
+                            fprintf(log, "JE @%04X %%B %%C\n", addr);
                             if (B == C) {
                                 *(IP_p) = addr;
                             }
                         }
                         case 0x03: {
-                            fprintf(log, "JE @%04X, %%B, %%D\n", addr);
+                            fprintf(log, "JE @%04X %%B %%D\n", addr);
                             if (B == D) {
                                 *(IP_p) = addr;
                             }
@@ -2372,25 +2372,25 @@ void equal_op(memory RAM, byte op, FILE* log) {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JE @%04X, %%C, %%A\n", addr);
+                            fprintf(log, "JE @%04X %%C %%A\n", addr);
                             if (C == A) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JE @%04X, %%C, %%B\n", addr);
+                            fprintf(log, "JE @%04X %%C %%B\n", addr);
                             if (C == B) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JE @%04X, %%C, %%C\n", addr);
+                            fprintf(log, "JE @%04X %%C %%C\n", addr);
                             *(IP_p) = addr;
                         }
                         case 0x03: {
-                            fprintf(log, "JE @%04X, %%C, %%D\n", addr);
+                            fprintf(log, "JE @%04X %%C %%D\n", addr);
                             if (C == D) {
                                 *(IP_p) = addr;
                             }
@@ -2407,27 +2407,27 @@ void equal_op(memory RAM, byte op, FILE* log) {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JE @%04X, %%D, %%A\n", addr);
+                            fprintf(log, "JE @%04X %%D %%A\n", addr);
                             if (D == A) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JE @%04X, %%D, %%B\n", addr);
+                            fprintf(log, "JE @%04X %%D %%B\n", addr);
                             if (D == B) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JE @%04X, %%D, %%C\n", addr);
+                            fprintf(log, "JE @%04X %%D %%C\n", addr);
                             if (D == C) {
                                 *(IP_p) = addr;
                             }
                         }
                         case 0x03: {
-                            fprintf(log, "JE @%04X, %%D, %%D\n", addr);
+                            fprintf(log, "JE @%04X %%D %%D\n", addr);
                             *(IP_p) = addr;
                             break;
                         }
@@ -2461,24 +2461,24 @@ void equal_op(memory RAM, byte op, FILE* log) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JNE @%04X, %%A, %%A\n", addr);
+                            fprintf(log, "JNE @%04X %%A %%A\n", addr);
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JNE @%04X, %%A, %%B\n", addr);
+                            fprintf(log, "JNE @%04X %%A %%B\n", addr);
                             if (A != B) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JNE @%04X, %%A, %%C\n", addr);
+                            fprintf(log, "JNE @%04X %%A %%C\n", addr);
                             if (A != C) {
                                 *(IP_p) = addr;
                             }
                         }
                         case 0x03: {
-                            fprintf(log, "JNE @%04X, %%A, %%D\n", addr);
+                            fprintf(log, "JNE @%04X %%A %%D\n", addr);
                             if (A != D) {
                                 *(IP_p) = addr;
                             }
@@ -2495,24 +2495,24 @@ void equal_op(memory RAM, byte op, FILE* log) {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JNE @%04X, %%B, %%A\n", addr);
+                            fprintf(log, "JNE @%04X %%B %%A\n", addr);
                             if (B != A) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JNE @%04X, %%B, %%B\n", addr);
+                            fprintf(log, "JNE @%04X %%B %%B\n", addr);
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JNE @%04X, %%B, %%C\n", addr);
+                            fprintf(log, "JNE @%04X %%B %%C\n", addr);
                             if (B != C) {
                                 *(IP_p) = addr;
                             }
                         }
                         case 0x03: {
-                            fprintf(log, "JE @%04X, %%B, %%D\n", addr);
+                            fprintf(log, "JE @%04X %%B %%D\n", addr);
                             if (B != D) {
                                 *(IP_p) = addr;
                             }
@@ -2529,24 +2529,24 @@ void equal_op(memory RAM, byte op, FILE* log) {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JNE @%04X, %%C, %%A\n", addr);
+                            fprintf(log, "JNE @%04X %%C %%A\n", addr);
                             if (C != A) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JNE @%04X, %%C, %%B\n", addr);
+                            fprintf(log, "JNE @%04X %%C %%B\n", addr);
                             if (C != B) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JNE @%04X, %%C, %%C\n", addr);
+                            fprintf(log, "JNE @%04X %%C %%C\n", addr);
                         }
                         case 0x03: {
-                            fprintf(log, "JNE @%04X, %%C, %%D\n", addr);
+                            fprintf(log, "JNE @%04X %%C %%D\n", addr);
                             if (C != D) {
                                 *(IP_p) = addr;
                             }
@@ -2563,27 +2563,27 @@ void equal_op(memory RAM, byte op, FILE* log) {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JNE @%04X, %%D, %%A\n", addr);
+                            fprintf(log, "JNE @%04X %%D %%A\n", addr);
                             if (D != A) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JNE @%04X, %%D, %%B\n", addr);
+                            fprintf(log, "JNE @%04X %%D %%B\n", addr);
                             if (D != B) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JNE @%04X, %%D, %%C\n", addr);
+                            fprintf(log, "JNE @%04X %%D %%C\n", addr);
                             if (D != C) {
                                 *(IP_p) = addr;
                             }
                         }
                         case 0x03: {
-                            fprintf(log, "JNE @%04X, %%D, %%D\n", addr);
+                            fprintf(log, "JNE @%04X %%D %%D\n", addr);
                             break;
                         }
                         default: {
@@ -2619,24 +2619,24 @@ void ineq_op(memory RAM, byte op, FILE* log) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JG @%04X, %%A, %%A\n", addr);
+                            fprintf(log, "JG @%04X %%A %%A\n", addr);
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JG @%04X, %%A, %%B\n", addr);
+                            fprintf(log, "JG @%04X %%A %%B\n", addr);
                             if (A > B) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JG @%04X, %%A, %%C\n", addr);
+                            fprintf(log, "JG @%04X %%A %%C\n", addr);
                             if (A > C) {
                                 *(IP_p) = addr;
                             }
                         }
                         case 0x03: {
-                            fprintf(log, "JG @%04X, %%A, %%D\n", addr);
+                            fprintf(log, "JG @%04X %%A %%D\n", addr);
                             if (A > D) {
                                 *(IP_p) = addr;
                             }
@@ -2653,24 +2653,24 @@ void ineq_op(memory RAM, byte op, FILE* log) {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JG @%04X, %%B, %%A\n", addr);
+                            fprintf(log, "JG @%04X %%B %%A\n", addr);
                             if (B > A) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JG @%04X, %%B, %%B\n", addr);
+                            fprintf(log, "JG @%04X %%B %%B\n", addr);
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JG @%04X, %%B, %%C\n", addr);
+                            fprintf(log, "JG @%04X %%B %%C\n", addr);
                             if (B > C) {
                                 *(IP_p) = addr;
                             }
                         }
                         case 0x03: {
-                            fprintf(log, "JG @%04X, %%B, %%D\n", addr);
+                            fprintf(log, "JG @%04X %%B %%D\n", addr);
                             if (B > D) {
                                 *(IP_p) = addr;
                             }
@@ -2687,24 +2687,24 @@ void ineq_op(memory RAM, byte op, FILE* log) {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JG @%04X, %%C, %%A\n", addr);
+                            fprintf(log, "JG @%04X %%C %%A\n", addr);
                             if (C > A) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JG @%04X, %%C, %%B\n", addr);
+                            fprintf(log, "JG @%04X %%C %%B\n", addr);
                             if (C > B) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JG @%04X, %%C, %%C\n", addr);
+                            fprintf(log, "JG @%04X %%C %%C\n", addr);
                         }
                         case 0x03: {
-                            fprintf(log, "JG @%04X, %%C, %%D\n", addr);
+                            fprintf(log, "JG @%04X %%C %%D\n", addr);
                             if (C > D) {
                                 *(IP_p) = addr;
                             }
@@ -2721,27 +2721,27 @@ void ineq_op(memory RAM, byte op, FILE* log) {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JG @%04X, %%D, %%A\n", addr);
+                            fprintf(log, "JG @%04X %%D %%A\n", addr);
                             if (D > A) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JG @%04X, %%D, %%B\n", addr);
+                            fprintf(log, "JG @%04X %%D %%B\n", addr);
                             if (D > B) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JG @%04X, %%D, %%C\n", addr);
+                            fprintf(log, "JG @%04X %%D %%C\n", addr);
                             if (D > C) {
                                 *(IP_p) = addr;
                             }
                         }
                         case 0x03: {
-                            fprintf(log, "JG @%04X, %%D, %%D\n", addr);
+                            fprintf(log, "JG @%04X %%D %%D\n", addr);
                             break;
                         }
                         default: {
@@ -2775,24 +2775,24 @@ void ineq_op(memory RAM, byte op, FILE* log) {
                     // A source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JL @%04X, %%A, %%A\n", addr);
+                            fprintf(log, "JL @%04X %%A %%A\n", addr);
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JL @%04X, %%A, %%B\n", addr);
+                            fprintf(log, "JL @%04X %%A %%B\n", addr);
                             if (A < B) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JL @%04X, %%A, %%C\n", addr);
+                            fprintf(log, "JL @%04X %%A %%C\n", addr);
                             if (A < C) {
                                 *(IP_p) = addr;
                             }
                         }
                         case 0x03: {
-                            fprintf(log, "JL @%04X, %%A, %%D\n", addr);
+                            fprintf(log, "JL @%04X %%A %%D\n", addr);
                             if (A < D) {
                                 *(IP_p) = addr;
                             }
@@ -2809,24 +2809,24 @@ void ineq_op(memory RAM, byte op, FILE* log) {
                     // B source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JL @%04X, %%B, %%A\n", addr);
+                            fprintf(log, "JL @%04X %%B %%A\n", addr);
                             if (B < A) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JL @%04X, %%B, %%B\n", addr);
+                            fprintf(log, "JL @%04X %%B %%B\n", addr);
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JL @%04X, %%B, %%C\n", addr);
+                            fprintf(log, "JL @%04X %%B %%C\n", addr);
                             if (B < C) {
                                 *(IP_p) = addr;
                             }
                         }
                         case 0x03: {
-                            fprintf(log, "JL @%04X, %%B, %%D\n", addr);
+                            fprintf(log, "JL @%04X %%B %%D\n", addr);
                             if (B < D) {
                                 *(IP_p) = addr;
                             }
@@ -2843,24 +2843,24 @@ void ineq_op(memory RAM, byte op, FILE* log) {
                     // C source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JL @%04X, %%C, %%A\n", addr);
+                            fprintf(log, "JL @%04X %%C %%A\n", addr);
                             if (C < A) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JL @%04X, %%C, %%B\n", addr);
+                            fprintf(log, "JL @%04X %%C %%B\n", addr);
                             if (C < B) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JL @%04X, %%C, %%C\n", addr);
+                            fprintf(log, "JL @%04X %%C %%C\n", addr);
                         }
                         case 0x03: {
-                            fprintf(log, "JL @%04X, %%C, %%D\n", addr);
+                            fprintf(log, "JL @%04X %%C %%D\n", addr);
                             if (C < D) {
                                 *(IP_p) = addr;
                             }
@@ -2877,27 +2877,27 @@ void ineq_op(memory RAM, byte op, FILE* log) {
                     // D source cases
                     switch (RegB) {
                         case 0x00: {
-                            fprintf(log, "JL @%04X, %%D, %%A\n", addr);
+                            fprintf(log, "JL @%04X %%D %%A\n", addr);
                             if (D < A) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x01: {
-                            fprintf(log, "JL @%04X, %%D, %%B\n", addr);
+                            fprintf(log, "JL @%04X %%D %%B\n", addr);
                             if (D < B) {
                                 *(IP_p) = addr;
                             }
                             break;
                         }
                         case 0x02: {
-                            fprintf(log, "JL @%04X, %%D, %%C\n", addr);
+                            fprintf(log, "JL @%04X %%D %%C\n", addr);
                             if (D < C) {
                                 *(IP_p) = addr;
                             }
                         }
                         case 0x03: {
-                            fprintf(log, "JL @%04X, %%D, %%D\n", addr);
+                            fprintf(log, "JL @%04X %%D %%D\n", addr);
                             break;
                         }
                         default: {
