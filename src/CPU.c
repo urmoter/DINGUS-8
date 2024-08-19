@@ -945,8 +945,8 @@ void math_op(memory RAM, byte op, FILE* log) {
         case 0x0B: {
             byte reg = getop(RAM, log);
             switch (reg) {
-                fprintf(log, "DEC %%A\n");
                 case 0x00: {
+                    fprintf(log, "DEC %%A\n");
                     if (A == 0x00) {
                         (*S_p) = S | 0x10;
                     }

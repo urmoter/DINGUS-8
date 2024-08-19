@@ -1,0 +1,10 @@
+0x1B: SETO: Set Overflow [O].
+0x1C: CLRO: Clear Overflow [O].
+0x1D: SETZ: Set Zero [O].
+0x1E: CLRZ: Clear Zero [O].
+0x1F: SETN: Set Negative [N].
+0x20: CLRN: Clear Negative [N].
+0x21: SETP: Set Parity [P].
+0x22: CLRP: Clear Parity [P].
+0x23: SETC: Set Carry [C]
+0x24: CLRC: Clear Carry [C]
