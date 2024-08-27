@@ -1,6 +1,5 @@
 #include "../headers/memory.h"
 #include <stdio.h>
-#include <stdlib.h>
 
 byte A = 0x00;
 byte B = 0x00;
@@ -142,7 +141,7 @@ void mov_op(memory RAM, byte op, FILE* log) {
         }
         case 0x03: {
             byte data = getop(RAM, log);
-            fprintf(log, "MOVA 0x%02X\n", data);
+            fprintf(log, "MOVC 0x%02X\n", data);
             (*C_p) = data;
             if (C == 0x00) {
                 (*S_p) = S | 0x02;
@@ -151,7 +150,7 @@ void mov_op(memory RAM, byte op, FILE* log) {
         }
         case 0x04: {
             byte data = getop(RAM, log);
-            fprintf(log, "MOVA 0x%02X\n", data);
+            fprintf(log, "MOVD 0x%02X\n", data);
             (*D_p) = data;
             if (D == 0x00) {
                 (*S_p) = S | 0x02;
