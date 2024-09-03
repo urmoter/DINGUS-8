@@ -1,2 +1,0 @@
-0x2B: JG (IMM16)ADR (REG8)A (REG8)B: Jump to ADR if A>B
-0x2C: JL (IMM16)ADR (REG8)A (REG8)B: Jump to ADR if A<B
