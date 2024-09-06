@@ -13,7 +13,7 @@ S (status)
 IP (16-bit, holds current address)
 
 0xFFFE and 0xFFFF make the starting IP location:
-    (0xFFFE)(0xFFFF)
+        (0xFFFF)(0xFFFE)
 
 0xFFFD is the Terminal buffer
 
@@ -30,7 +30,7 @@ Access up-to 0xFFFF (2^16) in memory
 +-+-+-+-+-+-+-+-+
 |H|-|T|C|P|N|Z|O|
 +-+-+-+-+-+-+-+-+
-	0x0: Overflow, set when a register exceeds 0xFF and wraps around.
+	0x0: Overflow, set when a register exceeds 0xFF and wraps around. (Unused).
 	0x1: Zero, set if a register receives a 0x00 value.
 	0x2: Negative, Overflow in Subtraction.
 	0x3: Parity, 1 if odd, 0 if even number of bits.
@@ -67,11 +67,11 @@ Instructions:
 0x07: LDR (IMM16)ADR (REG8): Copy data from ADR to REG [Z].
 —MATH—————————————————————————————————————————————————————————————————
 0x08: ADD (REG8)A (REG8)B: Add A to B and store in B [C, Z].
-0x09: SUB (REG8)A (REG8)B: Subtract B from A and store in B [Z, N].
+0x09: SUB (REG8)A (REG8)B: Subtract B from A and store in A [Z, N].
 0x0A: INC (REG8): Increment REG by 1 [Z, C].
 0x0B: DEC (REG8): Decrement REG by 1 [Z, N].
 0x0C: ADC (REG8)A (REG8)B: Add A and (C) to B and store in B [Z, C].
-0x0D: SBB (REG8)A (REG8)B: Subtract B and (N) from A and store it in B [Z, N].
+0x0D: SBB (REG8)A (REG8)B: Subtract B and (N) from A and store it in A [Z, N].
 0x0E: NEG (REG8): Make REG Negative (2’s complement) [Z, N].
 0x0F: FLP (REG8): Flip the register's value around (76543210) -> (01234567) [Z, N].
 —STACK————————————————————————————————————————————————————————————————
