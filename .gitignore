@@ -1,9 +1,0 @@
-*.out
-.DS_Store
-*.gch
-.vscode
-*.bin
-*.uasm
-*Prime*
-*.txt
-!DINGUS_8_Docs.txt
