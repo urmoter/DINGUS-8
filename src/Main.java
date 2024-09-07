@@ -11,7 +11,7 @@ public class Main {
             }
         }
 
-        Cpu CPU = new Cpu("Test.bin");
+        Cpu CPU = new Cpu(bin_file);
         CPU.start();
     }
 }
