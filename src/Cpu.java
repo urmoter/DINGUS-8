@@ -453,7 +453,23 @@ public class Cpu {
         }
     }
     private void exec_JMP(int opcode) {
-
+        switch (opcode) {
+            case 0x13 -> {IP = (get_byte() + (get_byte() << 8));}
+            case 0x14 -> {push_stack(IP); IP = (get_byte() + (get_byte() << 8));}
+            case 0x15 -> IP = pop_stack();
+            case 0x16 -> {
+                int addr = (get_byte() + (get_byte() << 8));
+                if ((S & 0x02) != 0x00) {
+                    IP = addr;
+                }
+            }
+            case 0x17 -> {
+                int addr = (get_byte() + (get_byte() << 8));
+                if ((S & 0x02) == 0x00) {
+                    IP = addr;
+                }
+            }
+        }
     }
     private void exec_END() {
         S |= 0x80;
