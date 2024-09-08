@@ -454,7 +454,7 @@ public class Cpu {
     }
     private void exec_JMP(int opcode) {
         switch (opcode) {
-            case 0x13 -> {IP = (get_byte() + (get_byte() << 8));}
+            case 0x13 -> IP = (get_byte() + (get_byte() << 8));
             case 0x14 -> {push_stack(IP); IP = (get_byte() + (get_byte() << 8));}
             case 0x15 -> IP = pop_stack();
             case 0x16 -> {
@@ -481,7 +481,22 @@ public class Cpu {
         System.out.println("@IP: " + String.format("0x%04X", (IP - 1)));
         System.out.println("%SP: " + String.format("0x%02X", SP));
     }
-    private void exec_OVR(int opcode) {}
+    private void exec_OVR(int opcode) {
+        switch (opcode) {
+            case 0x19 -> {
+                int addr = (get_byte() + (get_byte() << 8));
+                if ((S & 0x01) != 0x00) {
+                    IP = addr;
+                }
+            }
+            case 0x1A -> {
+                int addr = (get_byte() + (get_byte() << 8));
+                if ((S & 0x01) == 0x00) {
+                    IP = addr;
+                }
+            }
+        }
+    }
     private void exec_STT(int opcode) {}
     private void exec_LOG(int opcode) {}
     private void exec_EQU(int opcode) {}
