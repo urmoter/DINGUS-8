@@ -497,7 +497,20 @@ public class Cpu {
             }
         }
     }
-    private void exec_STT(int opcode) {}
+    private void exec_STT(int opcode) {
+        switch (opcode) {
+            case 0x1B -> S |= 0x01;
+            case 0x1C -> S &= 0xFE;
+            case 0x1D -> S |= 0x02;
+            case 0x1E -> S &= 0xFD;
+            case 0x1F -> S |= 0x04;
+            case 0x20 -> S &= 0xFB;
+            case 0x21 -> S |= 0x08;
+            case 0x22 -> S &= 0xF7;
+            case 0x23 -> S |= 0x10;
+            case 0x24 -> S &= 0xEF;
+        }
+    }
     private void exec_LOG(int opcode) {}
     private void exec_EQU(int opcode) {}
     private void exec_INQ(int opcode) {}
