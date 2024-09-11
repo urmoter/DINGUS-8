@@ -112,10 +112,10 @@ Instructions:
 0x23: SETC: Set Carry [C]
 0x24: CLRC: Clear Carry [C]
 —LOGIC————————————————————————————————————————————————————————————————
-0x25: AND (REG8)A (REG8)B: Bitwise AND A and B and store in A.
-0x26: OR (REG8)A (REG8)B: Bitwise OR A and B and store in A.
-0x27: XOR (REG8)A (REG8)B: Bitwise XOR A and B and store in A.
-0x28: NOT (REG8): Invert A and store in A.
+0x25: AND (REG8)A (REG8)B: Bitwise AND A and B and store in A [Z].
+0x26: OR (REG8)A (REG8)B: Bitwise OR A and B and store in A [Z].
+0x27: XOR (REG8)A (REG8)B: Bitwise XOR A and B and store in A [Z].
+0x28: NOT (REG8): Invert A and store in A [Z].
 —EQUAL————————————————————————————————————————————————————————————————
 0x29: JE (IMM16)ADR (REG8)A (REG8)B: Jump to ADR if A and B are equal.
 0x2A: JNE (IMM16)ADR (REG8)A (REG8)B: Jump to ADR if A and B are not equal.
