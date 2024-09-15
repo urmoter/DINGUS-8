@@ -19,24 +19,26 @@ IP (16-bit, holds current address)
 
 Access up-to 0xFFFF (2^16) in memory
 0xFFFF +—————+
-       |START| (Where to start executing.)
+       |START| (0xFFFE -> 0xFFFF)
+0xFFFE +—————+
+       |PRINT| (0xFFFD)
 0xFFFD +—————+
-       | RAM | (0x0100 -> 0xFFFD)
-0x00FF +—————+
+       | RAM | (0x0100 -> 0xFFFC)
+0x0100 +—————+
        |STACK| (0x0000 -> 0x00FF)
 0x0000 +—————+
 
  7 6 5 4 3 2 1 0
 +-+-+-+-+-+-+-+-+
-|H|-|T|C|P|N|Z|O|
+|H|I|T|C|P|N|Z|U|
 +-+-+-+-+-+-+-+-+
-	0x0: Overflow, set when a register exceeds 0xFF and wraps around. (Unused).
+	0x0: User Flag, dedicated for the user to modify.
 	0x1: Zero, set if a register receives a 0x00 value.
 	0x2: Negative, Overflow in Subtraction.
 	0x3: Parity, 1 if odd, 0 if even number of bits.
 	0x4: Carry, Overflow in Addition.
 	0x5: Terminal, Active while printing to the Terminal memory address.
-	0x6: Unused
+	0x6: Interrupt, (Currently not implemented).
 	0x7: Halt, set when HLT (0x18) is called, clock will be ignored.
 
 Assembly syntax:
@@ -44,36 +46,36 @@ Assembly syntax:
     Data prepended with $ and written in hex.
     Registers prepended with %
     Comments indicated with //
-    Labels begin with _
+    Labels begin with LBL instruction
     Compiler directives start with .
 
 Instructions:
 -DIRECTIVES/NO OPCODE—————————————————————————————————————————————————
 1. Directives
-    1.1. offset (IMM16): Add the IMM16 to IP, a sort of pseudo jump.
-    1.2. start (IMM16): Set 0xFFFE and 0xFFFF to IMM16 (setting a start address).
+    1.1. .offset (IMM16): Add the IMM16 to IP, a sort of pseudo jump.
+    1.2. .start (IMM16): Set 0xFFFE and 0xFFFF to IMM16 (setting a start address).
 2. No Opcode
     2.1. LBL (label): Store the address and name of the label (pointing to the current IP value) as a pair.
 -NOP——————————————————————————————————————————————————————————————————
 0x00: NOP: Do nothing.
 —MOV——————————————————————————————————————————————————————————————————
-0x01: MOVA (IMM8): Copy IMM8 into A [Z].
-0x02: MOVB (IMM8): Copy IMM8 into B [Z].
-0x03: MOVC (IMM8): Copy IMM8 into C [Z].
-0x04: MOVD (IMM8): Copy IMM8 into D [Z].
-0x05: CPY (REG)A, (REG)B: Copy A’s data to B [Z].
+0x01: MOVA (IMM8): Copy IMM8 into A [Z, P].
+0x02: MOVB (IMM8): Copy IMM8 into B [Z, P].
+0x03: MOVC (IMM8): Copy IMM8 into C [Z, P].
+0x04: MOVD (IMM8): Copy IMM8 into D [Z, P].
+0x05: CPY (REG)A, (REG)B: Copy A’s data to B [Z], P.
 -MEMORY———————————————————————————————————————————————————————————————
-0x06: STR (REG8) (IMM16)ADR: Copy data from REG to ADR [Z].
-0x07: LDR (IMM16)ADR (REG8): Copy data from ADR to REG [Z].
+0x06: STR (REG8) (IMM16)ADR: Copy data from REG to ADR [Z, P].
+0x07: LDR (IMM16)ADR (REG8): Copy data from ADR to REG [Z, P].
 —MATH—————————————————————————————————————————————————————————————————
-0x08: ADD (REG8)A (REG8)B: Add B to A and store in A [C, Z].
-0x09: SUB (REG8)A (REG8)B: Subtract B from A and store in A [Z, N].
-0x0A: INC (REG8): Increment REG by 1 [Z, C].
-0x0B: DEC (REG8): Decrement REG by 1 [Z, N].
-0x0C: ADC (REG8)A (REG8)B: Add B and (C) to B and store in A [Z, C].
-0x0D: SBB (REG8)A (REG8)B: Subtract B and (N) from A and store it in A [Z, N].
-0x0E: NEG (REG8): Make REG Negative (2’s complement) [Z, N].
-0x0F: FLP (REG8): Flip the register's value around (76543210) -> (01234567) [Z, N].
+0x08: ADD (REG8)A (REG8)B: Add B to A and store in A [C, Z, P].
+0x09: SUB (REG8)A (REG8)B: Subtract B from A and store in A [Z, N, P].
+0x0A: INC (REG8): Increment REG by 1 [Z, C, P].
+0x0B: DEC (REG8): Decrement REG by 1 [Z, N, P].
+0x0C: ADC (REG8)A (REG8)B: Add B and (C) to B and store in A [Z, C, P].
+0x0D: SBB (REG8)A (REG8)B: Subtract B and (N) from A and store it in A [Z, N, P].
+0x0E: NEG (REG8): Make REG Negative (2’s complement) [Z, N, P].
+0x0F: FLP (REG8): Flip the register's value around (76543210) -> (01234567) [Z, N, P].
 —STACK————————————————————————————————————————————————————————————————
 0x10: PSHI (IMM8):
 	Set data at SP to IMM8.
@@ -81,7 +83,7 @@ Instructions:
 0x11: PSHR (REG):
 	Set data at SP to the value of REG.
 	Decrement SP.
-0x12: POP (REG): [Z]
+0x12: POP (REG): [Z, P]
 	Increment SP.
 	Set REG’s value to the data at SP.
 	Set the data at SP to 0x00.
@@ -98,11 +100,11 @@ Instructions:
 	Quit (If in Emulator).
 	Must reset to undo!
 -OVERFLOW—————————————————————————————————————————————————————————————
-0x19: JO: (IMM16)ADR: Jump to ADR if Overflow (O) is set.
-0x1A: JNO: (IMM16)ADR: Jump to ADR if Overflow (O) is not set.
+0x19: JU: (IMM16)ADR: Jump to ADR if User Flag (U) is set.
+0x1A: JNU: (IMM16)ADR: Jump to ADR if User Flag (U) is not set.
 -STATUS———————————————————————————————————————————————————————————————
-0x1B: SETO: Set Overflow [O].
-0x1C: CLRO: Clear Overflow [O].
+0x1B: SETU: Set User Flag [U].
+0x1C: CLRU: Clear User Flag [U].
 0x1D: SETZ: Set Zero [O].
 0x1E: CLRZ: Clear Zero [O].
 0x1F: SETN: Set Negative [N].
@@ -112,10 +114,10 @@ Instructions:
 0x23: SETC: Set Carry [C]
 0x24: CLRC: Clear Carry [C]
 —LOGIC————————————————————————————————————————————————————————————————
-0x25: AND (REG8)A (REG8)B: Bitwise AND A and B and store in A [Z].
-0x26: OR (REG8)A (REG8)B: Bitwise OR A and B and store in A [Z].
-0x27: XOR (REG8)A (REG8)B: Bitwise XOR A and B and store in A [Z].
-0x28: NOT (REG8): Invert A and store in A [Z].
+0x25: AND (REG8)A (REG8)B: Bitwise AND A and B and store in A [Z, P].
+0x26: OR (REG8)A (REG8)B: Bitwise OR A and B and store in A [Z, P].
+0x27: XOR (REG8)A (REG8)B: Bitwise XOR A and B and store in A [Z, P].
+0x28: NOT (REG8): Invert A and store in A [Z, P].
 —EQUAL————————————————————————————————————————————————————————————————
 0x29: JE (IMM16)ADR (REG8)A (REG8)B: Jump to ADR if A and B are equal.
 0x2A: JNE (IMM16)ADR (REG8)A (REG8)B: Jump to ADR if A and B are not equal.

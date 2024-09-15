@@ -124,13 +124,13 @@ public class Cpu {
     private void exec_MOV(int opcode) {
         switch (opcode) {
             // MOVA
-            case 0x01 -> {A = get_byte(); checkZero(A);}
+            case 0x01 -> {A = get_byte(); checkZero(A); checkParity(A);}
             // MOVB
-            case 0x02 -> {B = get_byte(); checkZero(B);}
+            case 0x02 -> {B = get_byte(); checkZero(A); checkParity(A);}
             // MOVC
-            case 0x03 -> {C = get_byte(); checkZero(C);}
+            case 0x03 -> {C = get_byte(); checkZero(C); checkParity(C);}
             // MOVD
-            case 0x04 -> {D = get_byte(); checkZero(D);}
+            case 0x04 -> {D = get_byte(); checkZero(D); checkParity(D);}
             // CPY
             case 0x05 -> {
                 int regA = get_byte();
@@ -139,37 +139,37 @@ public class Cpu {
                 switch (regA) {
                     case 0x00 -> {
                         switch (regB) {
-                            case 0x00 -> checkZero(A);
-                            case 0x01 -> {B = A; checkZero(B);}
-                            case 0x02 -> {C = A; checkZero(C);}
-                            case 0x03 -> {D = A; checkZero(D);}
+                            case 0x00 -> {checkZero(A); checkParity(A);}
+                            case 0x01 -> {B = A; checkZero(B); checkParity(B);}
+                            case 0x02 -> {C = A; checkZero(C); checkParity(C);}
+                            case 0x03 -> {D = A; checkZero(D); checkParity(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x01 -> {
                         switch (regB) {
-                            case 0x00 -> {A = B; checkZero(A);}
-                            case 0x01 -> checkZero(B);
-                            case 0x02 -> {C = B; checkZero(C);}
-                            case 0x03 -> {D = B; checkZero(D);}
+                            case 0x00 -> {A = B; checkZero(A); checkParity(A);}
+                            case 0x01 -> {checkZero(B); checkParity(B);}
+                            case 0x02 -> {C = B; checkZero(C); checkParity(C);}
+                            case 0x03 -> {D = B; checkZero(D); checkParity(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x02 -> {
                         switch (regB) {
-                            case 0x00 -> {A = C; checkZero(A);}
-                            case 0x01 -> {B = C; checkZero(B);}
-                            case 0x02 -> checkZero(C);
-                            case 0x03 -> {D = C; checkZero(D);}
+                            case 0x00 -> {A = C; checkZero(A); checkParity(A);}
+                            case 0x01 -> {B = C; checkZero(B); checkParity(B);}
+                            case 0x02 -> {checkZero(C); checkParity(C);}
+                            case 0x03 -> {D = C; checkZero(D); checkParity(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x03 -> {
                         switch (regB) {
-                            case 0x00 -> {A = D; checkZero(A);}
-                            case 0x01 -> {B = D; checkZero(B);}
-                            case 0x02 -> {C = D; checkZero(C);}
-                            case 0x03 -> checkZero(D);
+                            case 0x00 -> {A = D; checkZero(A); checkParity(A);}
+                            case 0x01 -> {B = D; checkZero(B); checkParity(B);}
+                            case 0x02 -> {C = D; checkZero(C); checkParity(C);}
+                            case 0x03 -> {checkZero(D); checkParity(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
@@ -184,10 +184,10 @@ public class Cpu {
                 int addr = (get_byte() + (get_byte() << 8));
 
                 switch (reg) {
-                    case 0x00 -> {RAM.write(A, addr); checkZero(RAM.read(addr));}
-                    case 0x01 -> {RAM.write(B, addr); checkZero(RAM.read(addr));}
-                    case 0x02 -> {RAM.write(C, addr); checkZero(RAM.read(addr));}
-                    case 0x03 -> {RAM.write(D, addr); checkZero(RAM.read(addr));}
+                    case 0x00 -> {RAM.write(A, addr); checkZero(RAM.read(addr)); checkParity(RAM.read(addr));}
+                    case 0x01 -> {RAM.write(B, addr); checkZero(RAM.read(addr)); checkParity(RAM.read(addr));}
+                    case 0x02 -> {RAM.write(C, addr); checkZero(RAM.read(addr)); checkParity(RAM.read(addr));}
+                    case 0x03 -> {RAM.write(D, addr); checkZero(RAM.read(addr)); checkParity(RAM.read(addr));}
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
@@ -197,10 +197,10 @@ public class Cpu {
                 int reg = get_byte();
 
                 switch (reg) {
-                    case 0x00 -> {A = RAM.read(addr); checkZero(A);}
-                    case 0x01 -> {B = RAM.read(addr); checkZero(B);}
-                    case 0x02 -> {C = RAM.read(addr); checkZero(C);}
-                    case 0x03 -> {D = RAM.read(addr); checkZero(D);}
+                    case 0x00 -> {A = RAM.read(addr); checkZero(A); checkParity(B);}
+                    case 0x01 -> {B = RAM.read(addr); checkZero(B); checkParity(B);}
+                    case 0x02 -> {C = RAM.read(addr); checkZero(C); checkParity(C);}
+                    case 0x03 -> {D = RAM.read(addr); checkZero(D); checkParity(D);}
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
@@ -217,37 +217,37 @@ public class Cpu {
                 switch (regA) {
                     case 0x00 -> {
                         switch (regB) {
-                            case 0x00 -> {A += A; checkZero(A); checkCarry(A);}
-                            case 0x01 -> {A += B; checkZero(A); checkCarry(A);}
-                            case 0x02 -> {A += C; checkZero(A); checkCarry(A);}
-                            case 0x03 -> {A += D; checkZero(A); checkCarry(A);}
+                            case 0x00 -> {A += A; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x01 -> {A += B; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x02 -> {A += C; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x03 -> {A += D; checkZero(A); checkParity(A); checkCarry(A);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x01 -> {
                         switch (regB) {
-                            case 0x00 -> {B += A; checkZero(B); checkCarry(B);}
-                            case 0x01 -> {B += B; checkZero(B); checkCarry(B);}
-                            case 0x02 -> {B += C; checkZero(B); checkCarry(B);}
-                            case 0x03 -> {B += D; checkZero(B); checkCarry(B);}
+                            case 0x00 -> {B += A; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x01 -> {B += B; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x02 -> {B += C; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x03 -> {B += D; checkZero(B); checkParity(B); checkCarry(B);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x02 -> {
                         switch (regB) {
-                            case 0x00 -> {C += A; checkZero(C); checkCarry(C);}
-                            case 0x01 -> {C += B; checkZero(C); checkCarry(C);}
-                            case 0x02 -> {C += C; checkZero(C); checkCarry(C);}
-                            case 0x03 -> {C += D; checkZero(C); checkCarry(C);}
+                            case 0x00 -> {C += A; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x01 -> {C += B; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x02 -> {C += C; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x03 -> {C += D; checkZero(C); checkParity(C); checkCarry(C);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x03 -> {
                         switch (regB) {
-                            case 0x00 -> {D += A; checkZero(D); checkCarry(D);}
-                            case 0x01 -> {D += B; checkZero(D); checkCarry(D);}
-                            case 0x02 -> {D += C; checkZero(D); checkCarry(D);}
-                            case 0x03 -> {D += D; checkZero(D); checkCarry(D);}
+                            case 0x00 -> {D += A; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x01 -> {D += B; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x02 -> {D += C; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x03 -> {D += D; checkZero(D); checkParity(D); checkCarry(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
@@ -261,37 +261,37 @@ public class Cpu {
                 switch (regA) {
                     case 0x00 -> {
                         switch (regB) {
-                            case 0x00 -> {A -= A; checkZero(A); checkNegative(A);}
-                            case 0x01 -> {A -= B; checkZero(A); checkNegative(A);}
-                            case 0x02 -> {A -= C; checkZero(A); checkNegative(A);}
-                            case 0x03 -> {A -= D; checkZero(A); checkNegative(A);}
+                            case 0x00 -> {A -= A; checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x01 -> {A -= B; checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x02 -> {A -= C; checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x03 -> {A -= D; checkZero(A); checkParity(A); checkNegative(A);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x01 -> {
                         switch (regB) {
-                            case 0x00 -> {B -= A; checkZero(B); checkNegative(B);}
-                            case 0x01 -> {B -= B; checkZero(B); checkNegative(B);}
-                            case 0x02 -> {B -= C; checkZero(B); checkNegative(B);}
-                            case 0x03 -> {B -= D; checkZero(B); checkNegative(B);}
+                            case 0x00 -> {B -= A; checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x01 -> {B -= B; checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x02 -> {B -= C; checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x03 -> {B -= D; checkZero(B); checkParity(B); checkNegative(B);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x02 -> {
                         switch (regB) {
-                            case 0x00 -> {C -= A; checkZero(C); checkNegative(C);}
-                            case 0x01 -> {C -= B; checkZero(C); checkNegative(C);}
-                            case 0x02 -> {C -= C; checkZero(C); checkNegative(C);}
-                            case 0x03 -> {C -= D; checkZero(C); checkNegative(C);}
+                            case 0x00 -> {C -= A; checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x01 -> {C -= B; checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x02 -> {C -= C; checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x03 -> {C -= D; checkZero(C); checkParity(C); checkNegative(C);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x03 -> {
                         switch (regB) {
-                            case 0x00 -> {D -= A; checkZero(D); checkNegative(D);}
-                            case 0x01 -> {D -= B; checkZero(D); checkNegative(D);}
-                            case 0x02 -> {D -= C; checkZero(D); checkNegative(D);}
-                            case 0x03 -> {D -= D; checkZero(D); checkNegative(D);}
+                            case 0x00 -> {D -= A; checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x01 -> {D -= B; checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x02 -> {D -= C; checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x03 -> {D -= D; checkZero(D); checkParity(D); checkNegative(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
@@ -301,20 +301,20 @@ public class Cpu {
             case 0x0A -> {
                 int reg = get_byte();
                 switch (reg) {
-                    case 0x00 -> {A++; checkZero(A); checkCarry(A);}
-                    case 0x01 -> {B++; checkZero(B); checkCarry(B);}
-                    case 0x02 -> {C++; checkZero(C); checkCarry(C);}
-                    case 0x03 -> {D++; checkZero(D); checkCarry(D);}
+                    case 0x00 -> {A++; checkZero(A); checkParity(A); checkCarry(A);}
+                    case 0x01 -> {B++; checkZero(B); checkParity(B); checkCarry(B);}
+                    case 0x02 -> {C++; checkZero(C); checkParity(C); checkCarry(C);}
+                    case 0x03 -> {D++; checkZero(D); checkParity(D); checkCarry(D);}
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
             case 0x0B -> {
                 int reg = get_byte();
                 switch (reg) {
-                    case 0x00 -> {A--; checkZero(A); checkNegative(A);}
-                    case 0x01 -> {B--; checkZero(B); checkNegative(B);}
-                    case 0x02 -> {C--; checkZero(C); checkNegative(C);}
-                    case 0x03 -> {D--; checkZero(D); checkNegative(D);}
+                    case 0x00 -> {A--; checkZero(A); checkParity(A); checkNegative(A);}
+                    case 0x01 -> {B--; checkZero(B); checkParity(B); checkNegative(B);}
+                    case 0x02 -> {C--; checkZero(C); checkParity(C); checkNegative(C);}
+                    case 0x03 -> {D--; checkZero(D); checkParity(D); checkNegative(D);}
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
@@ -325,37 +325,37 @@ public class Cpu {
                 switch (regA) {
                     case 0x00 -> {
                         switch (regB) {
-                            case 0x00 -> {A += A + carry; checkZero(A); checkCarry(A);}
-                            case 0x01 -> {A += B + carry; checkZero(A); checkCarry(A);}
-                            case 0x02 -> {A += C + carry; checkZero(A); checkCarry(A);}
-                            case 0x03 -> {A += D + carry; checkZero(A); checkCarry(A);}
+                            case 0x00 -> {A += A + carry; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x01 -> {A += B + carry; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x02 -> {A += C + carry; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x03 -> {A += D + carry; checkZero(A); checkParity(A); checkCarry(A);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x01 -> {
                         switch (regB) {
-                            case 0x00 -> {B += A + carry; checkZero(B); checkCarry(B);}
-                            case 0x01 -> {B += B + carry; checkZero(B); checkCarry(B);}
-                            case 0x02 -> {B += C + carry; checkZero(B); checkCarry(B);}
-                            case 0x03 -> {B += D + carry; checkZero(B); checkCarry(B);}
+                            case 0x00 -> {B += A + carry; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x01 -> {B += B + carry; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x02 -> {B += C + carry; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x03 -> {B += D + carry; checkZero(B); checkParity(B); checkCarry(B);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x02 -> {
                         switch (regB) {
-                            case 0x00 -> {C += A + carry; checkZero(C); checkCarry(C);}
-                            case 0x01 -> {C += B + carry; checkZero(C); checkCarry(C);}
-                            case 0x02 -> {C += C + carry; checkZero(C); checkCarry(C);}
-                            case 0x03 -> {C += D + carry; checkZero(C); checkCarry(C);}
+                            case 0x00 -> {C += A + carry; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x01 -> {C += B + carry; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x02 -> {C += C + carry; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x03 -> {C += D + carry; checkZero(C); checkParity(C); checkCarry(C);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x03 -> {
                         switch (regB) {
-                            case 0x00 -> {D += A + carry; checkZero(D); checkCarry(D);}
-                            case 0x01 -> {D += B + carry; checkZero(D); checkCarry(D);}
-                            case 0x02 -> {D += C + carry; checkZero(D); checkCarry(D);}
-                            case 0x03 -> {D += D + carry; checkZero(D); checkCarry(D);}
+                            case 0x00 -> {D += A + carry; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x01 -> {D += B + carry; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x02 -> {D += C + carry; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x03 -> {D += D + carry; checkZero(D); checkParity(D); checkCarry(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
@@ -369,37 +369,37 @@ public class Cpu {
                 switch (regA) {
                     case 0x00 -> {
                         switch (regB) {
-                            case 0x00 -> {A -= (A + negative); checkZero(A); checkNegative(A);}
-                            case 0x01 -> {A -= (B + negative); checkZero(A); checkNegative(A);}
-                            case 0x02 -> {A -= (C + negative); checkZero(A); checkNegative(A);}
-                            case 0x03 -> {A -= (D + negative); checkZero(A); checkNegative(A);}
+                            case 0x00 -> {A -= (A + negative); checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x01 -> {A -= (B + negative); checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x02 -> {A -= (C + negative); checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x03 -> {A -= (D + negative); checkZero(A); checkParity(A); checkNegative(A);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x01 -> {
                         switch (regB) {
-                            case 0x00 -> {B -= (A + negative); checkZero(B); checkNegative(B);}
-                            case 0x01 -> {B -= (B + negative); checkZero(B); checkNegative(B);}
-                            case 0x02 -> {B -= (C + negative); checkZero(B); checkNegative(B);}
-                            case 0x03 -> {B -= (D + negative); checkZero(B); checkNegative(B);}
+                            case 0x00 -> {B -= (A + negative); checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x01 -> {B -= (B + negative); checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x02 -> {B -= (C + negative); checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x03 -> {B -= (D + negative); checkZero(B); checkParity(B); checkNegative(B);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x02 -> {
                         switch (regB) {
-                            case 0x00 -> {C -= (A + negative); checkZero(C); checkNegative(C);}
-                            case 0x01 -> {C -= (B + negative); checkZero(C); checkNegative(C);}
-                            case 0x02 -> {C -= (C + negative); checkZero(C); checkNegative(C);}
-                            case 0x03 -> {C -= (D + negative); checkZero(C); checkNegative(C);}
+                            case 0x00 -> {C -= (A + negative); checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x01 -> {C -= (B + negative); checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x02 -> {C -= (C + negative); checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x03 -> {C -= (D + negative); checkZero(C); checkParity(C); checkNegative(C);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x03 -> {
                         switch (regB) {
-                            case 0x00 -> {D -= (A + negative); checkZero(D); checkNegative(D);}
-                            case 0x01 -> {D -= (B + negative); checkZero(D); checkNegative(D);}
-                            case 0x02 -> {D -= (C + negative); checkZero(D); checkNegative(D);}
-                            case 0x03 -> {D -= (D + negative); checkZero(D); checkNegative(D);}
+                            case 0x00 -> {D -= (A + negative); checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x01 -> {D -= (B + negative); checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x02 -> {D -= (C + negative); checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x03 -> {D -= (D + negative); checkZero(D); checkParity(D); checkNegative(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
@@ -409,20 +409,20 @@ public class Cpu {
             case 0x0E -> {
                 int reg = get_byte();
                 switch (reg) {
-                    case 0x00 -> {A = ~A + 1; checkZero(A); checkNegative(A);}
-                    case 0x01 -> {B = ~B + 1; checkZero(B); checkNegative(B);}
-                    case 0x02 -> {C = ~C + 1; checkZero(C); checkNegative(C);}
-                    case 0x03 -> {D = ~D + 1; checkZero(D); checkNegative(D);}
+                    case 0x00 -> {A = ~A + 1; checkZero(A); checkParity(A); checkNegative(A);}
+                    case 0x01 -> {B = ~B + 1; checkZero(B); checkParity(B); checkNegative(B);}
+                    case 0x02 -> {C = ~C + 1; checkZero(C); checkParity(D); checkNegative(C);}
+                    case 0x03 -> {D = ~D + 1; checkZero(D); checkParity(D); checkNegative(D);}
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
             case 0x0F -> {
                 int reg = get_byte();
                 switch (reg) {
-                    case 0x00 -> {A = flip_byte((byte) A); checkZero(A); checkNegative(A);}
-                    case 0x01 -> {B = flip_byte((byte) B); checkZero(B); checkNegative(B);}
-                    case 0x02 -> {C = flip_byte((byte) C); checkZero(C); checkNegative(C);}
-                    case 0x03 -> {D = flip_byte((byte) D); checkZero(D); checkNegative(D);}
+                    case 0x00 -> {A = flip_byte((byte) A); checkZero(A); checkParity(A); checkNegative(A);}
+                    case 0x01 -> {B = flip_byte((byte) B); checkZero(B); checkParity(B); checkNegative(B);}
+                    case 0x02 -> {C = flip_byte((byte) C); checkZero(C); checkParity(C); checkNegative(C);}
+                    case 0x03 -> {D = flip_byte((byte) D); checkZero(D); checkParity(D); checkNegative(D);}
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
@@ -447,10 +447,10 @@ public class Cpu {
             case 0x12 -> {
                 int reg = get_byte();
                 switch (reg) {
-                    case 0x00 -> {A = pop_stack(); checkZero(A);}
-                    case 0x01 -> {B = pop_stack(); checkZero(B);}
-                    case 0x02 -> {C = pop_stack(); checkZero(C);}
-                    case 0x03 -> {D = pop_stack(); checkZero(D);}
+                    case 0x00 -> {A = pop_stack(); checkZero(A); checkParity(A);}
+                    case 0x01 -> {B = pop_stack(); checkZero(B); checkParity(B);}
+                    case 0x02 -> {C = pop_stack(); checkZero(C); checkParity(C);}
+                    case 0x03 -> {D = pop_stack(); checkZero(D); checkParity(D);}
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }}
         }
@@ -523,18 +523,21 @@ public class Cpu {
                 switch (regA) {
                     case 0x00 -> {
                         switch (regB) {
-                            case 0x00 -> checkZero(A);
+                            case 0x00 -> {checkZero(A); checkParity(A);}
                             case 0x01 -> {
                                 A &= B;
                                 checkZero(A);
+                                checkParity(A);
                             }
                             case 0x02 -> {
                                 A &= C;
                                 checkZero(A);
+                                checkParity(A);
                             }
                             case 0x03 -> {
-                                D &= A;
+                                A &= D;
                                 checkZero(A);
+                                checkParity(A);
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -543,16 +546,16 @@ public class Cpu {
                         switch (regB) {
                             case 0x00 -> {
                                 B &= A;
-                                checkZero(B);
+                                checkZero(B); checkParity(B);
                             }
-                            case 0x01 -> checkZero(B);
+                            case 0x01 -> {checkZero(B); checkParity(B);}
                             case 0x02 -> {
                                 B &= C;
-                                checkZero(B);
+                                checkZero(B); checkParity(B);
                             }
                             case 0x03 -> {
                                 B &= D;
-                                checkZero(B);
+                                checkZero(B); checkParity(B);
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -561,16 +564,16 @@ public class Cpu {
                         switch (regB) {
                             case 0x00 -> {
                                 C &= A;
-                                checkZero(C);
+                                checkZero(C); checkParity(C);
                             }
                             case 0x01 -> {
                                 C &= B;
-                                checkZero(C);
+                                checkZero(C); checkParity(C);
                             }
-                            case 0x02 -> checkZero(C);
+                            case 0x02 -> {checkZero(C); checkParity(C);}
                             case 0x03 -> {
                                 C &= D;
-                                checkZero(C);
+                                checkZero(C); checkParity(C);
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -579,17 +582,17 @@ public class Cpu {
                         switch (regB) {
                             case 0x00 -> {
                                 D &= A;
-                                checkZero(D);
+                                checkZero(D); checkParity(D);
                             }
                             case 0x01 -> {
                                 D &= B;
-                                checkZero(D);
+                                checkZero(D); checkParity(D);
                             }
                             case 0x02 -> {
                                 D &= C;
-                                checkZero(D);
+                                checkZero(D); checkParity(D);
                             }
-                            case 0x03 -> checkZero(D);
+                            case 0x03 -> {checkZero(D); checkParity(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
@@ -602,18 +605,21 @@ public class Cpu {
                 switch (regA) {
                     case 0x00 -> {
                         switch (regB) {
-                            case 0x00 -> checkZero(A);
+                            case 0x00 -> {checkZero(A); checkParity(A);}
                             case 0x01 -> {
                                 A |= B;
                                 checkZero(A);
+                                checkParity(A);
                             }
                             case 0x02 -> {
                                 A |= C;
                                 checkZero(A);
+                                checkParity(A);
                             }
                             case 0x03 -> {
-                                D |= A;
+                                A |= D;
                                 checkZero(A);
+                                checkParity(A);
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -623,15 +629,18 @@ public class Cpu {
                             case 0x00 -> {
                                 B |= A;
                                 checkZero(B);
+                                checkParity(B);
                             }
-                            case 0x01 -> checkZero(B);
+                            case 0x01 -> {checkZero(B); checkParity(B);}
                             case 0x02 -> {
                                 B |= C;
                                 checkZero(B);
+                                checkParity(B);
                             }
                             case 0x03 -> {
                                 B |= D;
                                 checkZero(B);
+                                checkParity(B);
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -641,15 +650,18 @@ public class Cpu {
                             case 0x00 -> {
                                 C |= A;
                                 checkZero(C);
+                                checkParity(C);
                             }
                             case 0x01 -> {
                                 C |= B;
                                 checkZero(C);
+                                checkParity(C);
                             }
-                            case 0x02 -> checkZero(C);
+                            case 0x02 -> {checkZero(C); checkParity(C);}
                             case 0x03 -> {
                                 C |= D;
                                 checkZero(C);
+                                checkParity(C);
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -659,16 +671,19 @@ public class Cpu {
                             case 0x00 -> {
                                 D |= A;
                                 checkZero(D);
+                                checkParity(D);
                             }
                             case 0x01 -> {
                                 D |= B;
                                 checkZero(D);
+                                checkParity(D);
                             }
                             case 0x02 -> {
                                 D |= C;
                                 checkZero(D);
+                                checkParity(D);
                             }
-                            case 0x03 -> checkZero(D);
+                            case 0x03 -> {checkZero(D); checkParity(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
@@ -681,18 +696,21 @@ public class Cpu {
                 switch (regA) {
                     case 0x00 -> {
                         switch (regB) {
-                            case 0x00 -> checkZero(A);
+                            case 0x00 -> {checkZero(A); checkParity(A);}
                             case 0x01 -> {
                                 A ^= B;
                                 checkZero(A);
+                                checkParity(A);
                             }
                             case 0x02 -> {
                                 A ^= C;
                                 checkZero(A);
+                                checkParity(A);
                             }
                             case 0x03 -> {
-                                D ^= A;
+                                A ^= D;
                                 checkZero(A);
+                                checkParity(A);
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -702,15 +720,18 @@ public class Cpu {
                             case 0x00 -> {
                                 B ^= A;
                                 checkZero(B);
+                                checkParity(B);
                             }
-                            case 0x01 -> checkZero(B);
+                            case 0x01 -> {checkZero(B); checkParity(B);}
                             case 0x02 -> {
                                 B ^= C;
                                 checkZero(B);
+                                checkParity(B);
                             }
                             case 0x03 -> {
                                 B ^= D;
                                 checkZero(B);
+                                checkParity(B);
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -720,15 +741,18 @@ public class Cpu {
                             case 0x00 -> {
                                 C ^= A;
                                 checkZero(C);
+                                checkParity(C);
                             }
                             case 0x01 -> {
                                 C ^= B;
                                 checkZero(C);
+                                checkParity(C);
                             }
-                            case 0x02 -> checkZero(C);
+                            case 0x02 -> {checkZero(C); checkParity(C);}
                             case 0x03 -> {
                                 C ^= D;
                                 checkZero(C);
+                                checkParity(C);
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -738,16 +762,19 @@ public class Cpu {
                             case 0x00 -> {
                                 D ^= A;
                                 checkZero(D);
+                                checkParity(D);
                             }
                             case 0x01 -> {
                                 D ^= B;
                                 checkZero(D);
+                                checkParity(D);
                             }
                             case 0x02 -> {
                                 D ^= C;
                                 checkZero(D);
+                                checkParity(D);
                             }
-                            case 0x03 -> checkZero(D);
+                            case 0x03 -> {checkZero(D); checkParity(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
@@ -756,10 +783,10 @@ public class Cpu {
             case 0x28 -> {
                 int reg = get_byte();
                 switch (reg) {
-                    case 0x00 -> {A = ~A; checkZero(A);}
-                    case 0x01 -> {B = ~B; checkZero(A);}
-                    case 0x02 -> {C = ~C; checkZero(A);}
-                    case 0x03 -> {D = ~D; checkZero(A);}
+                    case 0x00 -> {A = ~A; checkZero(A); checkParity(A);}
+                    case 0x01 -> {B = ~B; checkZero(B); checkParity(B);}
+                    case 0x02 -> {C = ~C; checkZero(C); checkParity(C);}
+                    case 0x03 -> {D = ~D; checkZero(D); checkParity(D);}
                 }
             }
         }
@@ -979,23 +1006,29 @@ public class Cpu {
     private void checkZero(int data) {
         if (data == 0x00) {
             S |= 0x02;
+        } else {
+            S &= 0xFD;
         }
     }
     private void checkNegative(int data) {
         if (data > 0xFF) {
             S |= 0x04;
+        } else {
+            S &= 0xFB;
         }
     }
     private void checkCarry(int data) {
         if (data > 0xFF) {
             S |= 0x10;
+        } else {
+            S &= 0xEF;
         }
     }
     private int flip_byte(byte data) {
         int intSize = 8;
-        byte y=0;
+        byte y = 0;
         for(int position=intSize-1; position>0; position--){
-            y+= (byte) ((data&1)<<position);
+            y += (byte) ((data & 1)<<position);
             data >>= 1;
         }
         return y;
@@ -1015,5 +1048,15 @@ public class Cpu {
         int data = RAM.read(SP);
         RAM.write(0x00, SP);
         return data;
+    }
+    private void checkParity(int data) {
+        int number_of_bits = 0;
+        for (int i = 0; i < 8; i++) {
+            int copy = (data << i);
+            copy &= 0x01;
+            if (copy != 0x00) {
+                number_of_bits++;
+            }
+        }
     }
 }
