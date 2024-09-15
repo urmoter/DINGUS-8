@@ -80,7 +80,7 @@ public class Cpu {
             case EQU -> exec_EQU(data);
             case INQ -> exec_INQ(data);
             case PRN -> exec_PRN(data);
-            case CAR -> exex_CAR(data);
+            case CAR -> exec_CAR(data);
             case NEG -> exec_NEG(data);
             case PAR -> exec_PAR(data);
         }
@@ -1018,7 +1018,7 @@ public class Cpu {
             case 0x2F -> stopPrint();
         }
     }
-    private void exex_CAR(int opcode) {
+    private void exec_CAR(int opcode) {
         switch (opcode) {
             case 0x30 -> {
                 int addr = (get_byte() + (get_byte() << 8));
