@@ -11,12 +11,15 @@ public class Cpu {
         STK,
         JMP,
         END,
-        OVR,
+        USR,
         STT,
         LOG,
         EQU,
         INQ,
         PRN,
+        CAR,
+        NEG,
+        PAR,
     }
 
     private final Memory RAM = new Memory();
@@ -58,21 +61,28 @@ public class Cpu {
                 System.out.print(RAM.read(0xFFFD));
             }
 
-            switch (type) {
-                case NOP -> {}
-                case MOV -> exec_MOV(data);
-                case MEM -> exec_MEM(data);
-                case MTH -> exec_MTH(data);
-                case STK -> exec_STK(data);
-                case JMP -> exec_JMP(data);
-                case END -> exec_END();
-                case OVR -> exec_OVR(data);
-                case STT -> exec_STT(data);
-                case LOG -> exec_LOG(data);
-                case EQU -> exec_EQU(data);
-                case INQ -> exec_INQ(data);
-                case PRN -> exec_PRN(data);
-            }
+            type_exec(data, type);
+        }
+    }
+
+    private void type_exec(int data, OPTYPE type) {
+        switch (type) {
+            case NOP -> {}
+            case MOV -> exec_MOV(data);
+            case MEM -> exec_MEM(data);
+            case MTH -> exec_MTH(data);
+            case STK -> exec_STK(data);
+            case JMP -> exec_JMP(data);
+            case END -> exec_END();
+            case USR -> exec_USR(data);
+            case STT -> exec_STT(data);
+            case LOG -> exec_LOG(data);
+            case EQU -> exec_EQU(data);
+            case INQ -> exec_INQ(data);
+            case PRN -> exec_PRN(data);
+            case CAR -> exex_CAR(data);
+            case NEG -> exec_NEG(data);
+            case PAR -> exec_PAR(data);
         }
     }
 
@@ -105,7 +115,7 @@ public class Cpu {
         } else if (opcode == 0x18) {
             return OPTYPE.END;
         } else if ((opcode > 0x18) && (opcode < 0x1B)) {
-            return OPTYPE.OVR;
+            return OPTYPE.USR;
         } else if ((opcode > 0x1A) && (opcode < 0x25)) {
             return OPTYPE.STT;
         } else if ((opcode > 0x24) && (opcode < 0x29)) {
@@ -116,6 +126,12 @@ public class Cpu {
             return OPTYPE.INQ;
         } else if ((opcode > 0x2C) && (opcode < 0x30)) {
             return OPTYPE.PRN;
+        } else if ((opcode > 0x29) && (opcode < 0x32)) {
+            return OPTYPE.CAR;
+        } else if ((opcode > 0x31) && (opcode < 0x34)) {
+            return OPTYPE.NEG;
+        } else if ((opcode > 0x33) && (opcode < 0x36)) {
+            return OPTYPE.PAR;
         } else {
             throw new RuntimeException("INVALID OPCODE!");
         }
@@ -484,7 +500,7 @@ public class Cpu {
         System.out.println("@IP: " + String.format("0x%04X", (IP - 1)));
         System.out.println("%SP: " + String.format("0x%02X", SP));
     }
-    private void exec_OVR(int opcode) {
+    private void exec_USR(int opcode) {
         switch (opcode) {
             case 0x19 -> {
                 int addr = (get_byte() + (get_byte() << 8));
@@ -1002,6 +1018,54 @@ public class Cpu {
             case 0x2F -> stopPrint();
         }
     }
+    private void exex_CAR(int opcode) {
+        switch (opcode) {
+            case 0x30 -> {
+                int addr = (get_byte() + (get_byte() << 8));
+                if ((S & 0x10) != 0x00) {
+                    IP = addr;
+                }
+            }
+            case 0x31 -> {
+                int addr = (get_byte() + (get_byte() << 8));
+                if ((S & 0x10) == 0x00) {
+                    IP = addr;
+                }
+            }
+        }
+    }
+    private void exec_NEG(int opcode) {
+        switch (opcode) {
+            case 0x32 -> {
+                int addr = (get_byte() + (get_byte() << 8));
+                if ((S & 0x04) != 0x00) {
+                    IP = addr;
+                }
+            }
+            case 0x33 -> {
+                int addr = (get_byte() + (get_byte() << 8));
+                if ((S & 0x04) == 0x00) {
+                    IP = addr;
+                }
+            }
+        }
+    }
+    private void exec_PAR(int opcode) {
+        switch (opcode) {
+            case 0x34 -> {
+                int addr = (get_byte() + (get_byte() << 8));
+                if ((S & 0x08) != 0x00) {
+                    IP = addr;
+                }
+            }
+            case 0x35 -> {
+                int addr = (get_byte() + (get_byte() << 8));
+                if ((S & 0x08) == 0x00) {
+                    IP = addr;
+                }
+            }
+        }
+    }
 
     private void checkZero(int data) {
         if (data == 0x00) {
@@ -1024,6 +1088,17 @@ public class Cpu {
             S &= 0xEF;
         }
     }
+    private void checkParity(int data) {
+        int number_of_bits = 0;
+        for (int i = 0; i < 8; i++) {
+            int copy = (data << i);
+            copy &= 0x01;
+            if (copy != 0x00) {
+                number_of_bits++;
+            }
+        }
+    }
+
     private int flip_byte(byte data) {
         int intSize = 8;
         byte y = 0;
@@ -1033,6 +1108,7 @@ public class Cpu {
         }
         return y;
     }
+
     private void push_stack(int data) {
         RAM.write(data, SP);
         SP--;
@@ -1048,15 +1124,5 @@ public class Cpu {
         int data = RAM.read(SP);
         RAM.write(0x00, SP);
         return data;
-    }
-    private void checkParity(int data) {
-        int number_of_bits = 0;
-        for (int i = 0; i < 8; i++) {
-            int copy = (data << i);
-            copy &= 0x01;
-            if (copy != 0x00) {
-                number_of_bits++;
-            }
-        }
     }
 }
