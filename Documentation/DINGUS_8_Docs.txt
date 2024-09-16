@@ -63,7 +63,7 @@ Instructions:
 0x02: MOVB (IMM8): Copy IMM8 into B [Z, P].
 0x03: MOVC (IMM8): Copy IMM8 into C [Z, P].
 0x04: MOVD (IMM8): Copy IMM8 into D [Z, P].
-0x05: CPY (REG)A, (REG)B: Copy A’s data to B [Z], P.
+0x05: CPY (REG)A, (REG)B: Copy A’s data to B [Z, P].
 -MEMORY-----------------------------------------------------------------------------------------------------
 0x06: STR (REG8) (IMM16)ADR: Copy data from REG to ADR [Z, P].
 0x07: LDR (IMM16)ADR (REG8): Copy data from ADR to REG [Z, P].
