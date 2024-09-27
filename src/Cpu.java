@@ -2,26 +2,28 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-public class Cpu {
-    private enum OPTYPE {
-        NOP,
-        MOV,
-        MEM,
-        MTH,
-        STK,
-        JMP,
-        END,
-        USR,
-        STT,
-        LOG,
-        EQU,
-        INQ,
-        PRN,
-        CAR,
-        NEG,
-        PAR,
-    }
+enum OpcodeType {
+    NOP,
+    MOV,
+    MEM,
+    MTH,
+    STK,
+    JMP,
+    END,
+    USR,
+    STT,
+    LOG,
+    EQU,
+    INQ,
+    PRN,
+    CAR,
+    NEG,
+    PAR,
+    IND,
+    TMP,
+}
 
+public class Cpu {
     private final Memory RAM = new Memory();
     private int A = 0;
     private int B = 0;
@@ -30,7 +32,15 @@ public class Cpu {
     private int S = 0;
     private int IP;
     private int SP = 0xFF;
+    private int TS = SP;
 
+    /**
+     * Creates a new Cpu instance and initializes it by loading a binary file into RAM.
+     * Reads the contents of the specified binary file byte by byte and writes it to RAM.
+     * Sets the instruction pointer (IP) to the start address as defined in RAM.
+     *
+     * @param bin_file the path to the binary file that will be loaded into RAM
+     */
     public Cpu(String bin_file) {
         int arr;
         File bin = new File(bin_file);
@@ -50,14 +60,32 @@ public class Cpu {
         IP = get_start_address();
     }
 
+    /**
+     * Starts the execution of a process that involves reading a byte,
+     * determining its opcode type, executing based on the opcode type,
+     * and optionally reading from memory depending on certain conditions.
+     *
+     * The method operates within a loop that continues as long as a status
+     * condition is met and a program counter is within a valid range.
+     *
+     * The loop performs the following steps:
+     * 1. Reads a byte (`data`) using the `get_byte()` method.
+     * 2. Determines the type of the opcode using `determine_opcode_type(data)`.
+     * 3. Checks additional conditions involving the status register (`S`)
+     *    and the instruction pointer (`IP`).
+     * 4. Optionally prints a value from memory.
+     * 5. Executes an action based on the opcode type using the `type_exec(data, type)` method.
+     *
+     * The loop exits when the specified conditions are no longer met.
+     */
     public void start() {
         int data;
-        OPTYPE type;
+        OpcodeType type;
 
         while (((S & 0x80) == 0) && (IP <= 0xFFFF)) {
             data = get_byte();
             type = determine_opcode_type(data);
-            if ((S &= 0x20) != 0x00) {
+            if (((S &= 0x20) != 0x00) && IP <= 0xFFFF) {
                 System.out.print(RAM.read(0xFFFD));
             }
 
@@ -65,7 +93,13 @@ public class Cpu {
         }
     }
 
-    private void type_exec(int data, OPTYPE type) {
+    /**
+     * Executes an operation based on the given opcode type.
+     *
+     * @param data the data or opcode to be processed
+     * @param type the type of operation to be executed, represented by an enum constant of OpcodeType
+     */
+    private void type_exec(int data, OpcodeType type) {
         switch (type) {
             case NOP -> {}
             case MOV -> exec_MOV(data);
@@ -83,9 +117,17 @@ public class Cpu {
             case CAR -> exec_CAR(data);
             case NEG -> exec_NEG(data);
             case PAR -> exec_PAR(data);
+            case IND -> exec_IND(data);
+            case TMP -> exec_TMP(data);
         }
     }
 
+    /**
+     * Reads the start address from the memory by combining the values
+     * at memory locations 0xFFFE and 0xFFFF.
+     *
+     * @return the start address computed by combining the LSB and MSB values.
+     */
     private int get_start_address() {
         int LSB = RAM.read(0xFFFE);
         int MSB = RAM.read(0xFFFF);
@@ -93,56 +135,60 @@ public class Cpu {
         return (MSB << 8) + LSB;
     }
 
+    /**
+     * Reads a byte from the current address pointed by the instruction pointer (IP)
+     * in the RAM and increments the instruction pointer.
+     *
+     * @return the byte read from the RAM.
+     */
     private int get_byte() {
         int data =  RAM.read(IP);
         IP++;
         return data;
     }
 
-    private OPTYPE determine_opcode_type(int opcode) throws RuntimeException {
-        if (opcode == 0x00) {
-            return OPTYPE.NOP;
-        } else if ((opcode > 0x00) && (opcode < 0x06)) {
-            return OPTYPE.MOV;
-        } else if ((opcode > 0x05) && (opcode < 0x08)) {
-            return OPTYPE.MEM;
-        } else if ((opcode > 0x07) && (opcode < 0x10)) {
-            return OPTYPE.MTH;
-        } else if ((opcode > 0x0F) && (opcode < 0x13)) {
-            return OPTYPE.STK;
-        } else if ((opcode > 0x12) && (opcode < 0x18)) {
-            return OPTYPE.JMP;
-        } else if (opcode == 0x18) {
-            return OPTYPE.END;
-        } else if ((opcode > 0x18) && (opcode < 0x1B)) {
-            return OPTYPE.USR;
-        } else if ((opcode > 0x1A) && (opcode < 0x25)) {
-            return OPTYPE.STT;
-        } else if ((opcode > 0x24) && (opcode < 0x29)) {
-            return OPTYPE.LOG;
-        } else if ((opcode > 0x28) && (opcode < 0x2B)) {
-            return OPTYPE.EQU;
-        } else if ((opcode > 0x2A) && (opcode < 0x2D)) {
-            return OPTYPE.INQ;
-        } else if ((opcode > 0x2C) && (opcode < 0x30)) {
-            return OPTYPE.PRN;
-        } else if ((opcode > 0x29) && (opcode < 0x32)) {
-            return OPTYPE.CAR;
-        } else if ((opcode > 0x31) && (opcode < 0x34)) {
-            return OPTYPE.NEG;
-        } else if ((opcode > 0x33) && (opcode < 0x36)) {
-            return OPTYPE.PAR;
-        } else {
-            throw new RuntimeException("INVALID OPCODE!");
-        }
+    /**
+     * Determines the type of the given opcode.
+     *
+     * @param opcode The opcode to be evaluated.
+     * @return The type of the opcode as an instance of {@code OpcodeType}.
+     * @throws RuntimeException If the opcode is invalid.
+     */
+    private OpcodeType determine_opcode_type(int opcode) throws RuntimeException {
+        return switch (opcode) {
+            case 0x00 -> OpcodeType.NOP;
+            case 0x01, 0x02, 0x03, 0x04, 0x05 -> OpcodeType.MOV;
+            case 0x06, 0x07 -> OpcodeType.MEM;
+            case 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0F -> OpcodeType.MTH;
+            case 0x10, 0x11, 0x12 -> OpcodeType.STK;
+            case 0x13, 0x14, 0x15, 0x16, 0x17 -> OpcodeType.JMP;
+            case 0x18 -> OpcodeType.END;
+            case 0x19, 0x1A -> OpcodeType.USR;
+            case 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23, 0x24 -> OpcodeType.STT;
+            case 0x25, 0x26, 0x27, 0x28 -> OpcodeType.LOG;
+            case 0x29, 0x2A -> OpcodeType.EQU;
+            case 0x2B, 0x2C -> OpcodeType.INQ;
+            case 0x2D, 0x2E, 0x2F -> OpcodeType.PRN;
+            case 0x30, 0x31 -> OpcodeType.CAR;
+            case 0x32, 0x33 -> OpcodeType.NEG;
+            case 0x34, 0x35 -> OpcodeType.PAR;
+            case 0x36, 0x37, 0x38, 0x39 -> OpcodeType.IND;
+            case 0x3A, 0x3B -> OpcodeType.TMP;
+            default -> throw new RuntimeException("INVALID OPCODE!");
+        };
     }
 
+    /**
+     * Executes the MOV instruction based on the provided opcode.
+     *
+     * @param opcode the opcode representing the specific MOV operation to execute
+     */
     private void exec_MOV(int opcode) {
         switch (opcode) {
             // MOVA
             case 0x01 -> {A = get_byte(); checkZero(A); checkParity(A);}
             // MOVB
-            case 0x02 -> {B = get_byte(); checkZero(A); checkParity(A);}
+            case 0x02 -> {B = get_byte(); checkZero(B); checkParity(B);}
             // MOVC
             case 0x03 -> {C = get_byte(); checkZero(C); checkParity(C);}
             // MOVD
@@ -193,6 +239,11 @@ public class Cpu {
             }
         }
     }
+    /**
+     * Executes the memory-related instructions based on the provided opcode.
+     *
+     * @param opcode the opcode representing the specific memory operation to execute
+     */
     private void exec_MEM(int opcode) {
         switch (opcode) {
             case 0x06 -> {
@@ -213,7 +264,7 @@ public class Cpu {
                 int reg = get_byte();
 
                 switch (reg) {
-                    case 0x00 -> {A = RAM.read(addr); checkZero(A); checkParity(B);}
+                    case 0x00 -> {A = RAM.read(addr); checkZero(A); checkParity(A);}
                     case 0x01 -> {B = RAM.read(addr); checkZero(B); checkParity(B);}
                     case 0x02 -> {C = RAM.read(addr); checkZero(C); checkParity(C);}
                     case 0x03 -> {D = RAM.read(addr); checkZero(D); checkParity(D);}
@@ -222,6 +273,13 @@ public class Cpu {
             }
         }
     }
+    /**
+     * Executes a mathematical operation based on the given opcode.
+     * The operations include addition, subtraction, increment, decrement,
+     * and addition with carry, among registers A, B, C, and D.
+     *
+     * @param opcode the operation code that determines the mathematical operation to perform.
+     */
     private void exec_MTH(int opcode) {
         int carry = ((S & 0x10) != 0x00) ? 1 : 0;
         int negative = ((S & 0x04) != 0x00) ? 1 : 0;
@@ -233,37 +291,37 @@ public class Cpu {
                 switch (regA) {
                     case 0x00 -> {
                         switch (regB) {
-                            case 0x00 -> {A += A; checkZero(A); checkParity(A); checkCarry(A);}
-                            case 0x01 -> {A += B; checkZero(A); checkParity(A); checkCarry(A);}
-                            case 0x02 -> {A += C; checkZero(A); checkParity(A); checkCarry(A);}
-                            case 0x03 -> {A += D; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x00 -> {A += (byte) A; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x01 -> {A += (byte) B; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x02 -> {A += (byte) C; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x03 -> {A += (byte) D; checkZero(A); checkParity(A); checkCarry(A);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x01 -> {
                         switch (regB) {
-                            case 0x00 -> {B += A; checkZero(B); checkParity(B); checkCarry(B);}
-                            case 0x01 -> {B += B; checkZero(B); checkParity(B); checkCarry(B);}
-                            case 0x02 -> {B += C; checkZero(B); checkParity(B); checkCarry(B);}
-                            case 0x03 -> {B += D; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x00 -> {B += (byte) A; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x01 -> {B += (byte) B; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x02 -> {B += (byte) C; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x03 -> {B += (byte) D; checkZero(B); checkParity(B); checkCarry(B);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x02 -> {
                         switch (regB) {
-                            case 0x00 -> {C += A; checkZero(C); checkParity(C); checkCarry(C);}
-                            case 0x01 -> {C += B; checkZero(C); checkParity(C); checkCarry(C);}
-                            case 0x02 -> {C += C; checkZero(C); checkParity(C); checkCarry(C);}
-                            case 0x03 -> {C += D; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x00 -> {C += (byte) A; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x01 -> {C += (byte) B; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x02 -> {C += (byte) C; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x03 -> {C += (byte) D; checkZero(C); checkParity(C); checkCarry(C);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x03 -> {
                         switch (regB) {
-                            case 0x00 -> {D += A; checkZero(D); checkParity(D); checkCarry(D);}
-                            case 0x01 -> {D += B; checkZero(D); checkParity(D); checkCarry(D);}
-                            case 0x02 -> {D += C; checkZero(D); checkParity(D); checkCarry(D);}
-                            case 0x03 -> {D += D; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x00 -> {D += (byte) A; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x01 -> {D += (byte) B; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x02 -> {D += (byte) C; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x03 -> {D += (byte) D; checkZero(D); checkParity(D); checkCarry(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
@@ -277,37 +335,37 @@ public class Cpu {
                 switch (regA) {
                     case 0x00 -> {
                         switch (regB) {
-                            case 0x00 -> {A -= A; checkZero(A); checkParity(A); checkNegative(A);}
-                            case 0x01 -> {A -= B; checkZero(A); checkParity(A); checkNegative(A);}
-                            case 0x02 -> {A -= C; checkZero(A); checkParity(A); checkNegative(A);}
-                            case 0x03 -> {A -= D; checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x00 -> {A -= (byte) A; checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x01 -> {A -= (byte) B; checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x02 -> {A -= (byte) C; checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x03 -> {A -= (byte) D; checkZero(A); checkParity(A); checkNegative(A);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x01 -> {
                         switch (regB) {
-                            case 0x00 -> {B -= A; checkZero(B); checkParity(B); checkNegative(B);}
-                            case 0x01 -> {B -= B; checkZero(B); checkParity(B); checkNegative(B);}
-                            case 0x02 -> {B -= C; checkZero(B); checkParity(B); checkNegative(B);}
-                            case 0x03 -> {B -= D; checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x00 -> {B -= (byte) A; checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x01 -> {B -= (byte) B; checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x02 -> {B -= (byte) C; checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x03 -> {B -= (byte) D; checkZero(B); checkParity(B); checkNegative(B);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x02 -> {
                         switch (regB) {
-                            case 0x00 -> {C -= A; checkZero(C); checkParity(C); checkNegative(C);}
-                            case 0x01 -> {C -= B; checkZero(C); checkParity(C); checkNegative(C);}
-                            case 0x02 -> {C -= C; checkZero(C); checkParity(C); checkNegative(C);}
-                            case 0x03 -> {C -= D; checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x00 -> {C -= (byte) A; checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x01 -> {C -= (byte) B; checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x02 -> {C -= (byte) C; checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x03 -> {C -= (byte) D; checkZero(C); checkParity(C); checkNegative(C);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x03 -> {
                         switch (regB) {
-                            case 0x00 -> {D -= A; checkZero(D); checkParity(D); checkNegative(D);}
-                            case 0x01 -> {D -= B; checkZero(D); checkParity(D); checkNegative(D);}
-                            case 0x02 -> {D -= C; checkZero(D); checkParity(D); checkNegative(D);}
-                            case 0x03 -> {D -= D; checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x00 -> {D -= (byte) A; checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x01 -> {D -= (byte) B; checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x02 -> {D -= (byte) C; checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x03 -> {D -= (byte) D; checkZero(D); checkParity(D); checkNegative(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
@@ -317,20 +375,20 @@ public class Cpu {
             case 0x0A -> {
                 int reg = get_byte();
                 switch (reg) {
-                    case 0x00 -> {A++; checkZero(A); checkParity(A); checkCarry(A);}
-                    case 0x01 -> {B++; checkZero(B); checkParity(B); checkCarry(B);}
-                    case 0x02 -> {C++; checkZero(C); checkParity(C); checkCarry(C);}
-                    case 0x03 -> {D++; checkZero(D); checkParity(D); checkCarry(D);}
+                    case 0x00 -> {A++; A = (byte) A; checkZero(A); checkParity(A); checkCarry(A);}
+                    case 0x01 -> {B++; B = (byte) B; checkZero(B); checkParity(B); checkCarry(B);}
+                    case 0x02 -> {C++; C = (byte) C; checkZero(C); checkParity(C); checkCarry(C);}
+                    case 0x03 -> {D++; D = (byte) D; checkZero(D); checkParity(D); checkCarry(D);}
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
             case 0x0B -> {
                 int reg = get_byte();
                 switch (reg) {
-                    case 0x00 -> {A--; checkZero(A); checkParity(A); checkNegative(A);}
-                    case 0x01 -> {B--; checkZero(B); checkParity(B); checkNegative(B);}
-                    case 0x02 -> {C--; checkZero(C); checkParity(C); checkNegative(C);}
-                    case 0x03 -> {D--; checkZero(D); checkParity(D); checkNegative(D);}
+                    case 0x00 -> {A--; A = (byte) A; checkZero(A); checkParity(A); checkNegative(A);}
+                    case 0x01 -> {B--; B = (byte) B; checkZero(B); checkParity(B); checkNegative(B);}
+                    case 0x02 -> {C--; C = (byte) C; checkZero(C); checkParity(C); checkNegative(C);}
+                    case 0x03 -> {D--; D = (byte) D; checkZero(D); checkParity(D); checkNegative(D);}
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
@@ -341,37 +399,37 @@ public class Cpu {
                 switch (regA) {
                     case 0x00 -> {
                         switch (regB) {
-                            case 0x00 -> {A += A + carry; checkZero(A); checkParity(A); checkCarry(A);}
-                            case 0x01 -> {A += B + carry; checkZero(A); checkParity(A); checkCarry(A);}
-                            case 0x02 -> {A += C + carry; checkZero(A); checkParity(A); checkCarry(A);}
-                            case 0x03 -> {A += D + carry; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x00 -> {A += (byte) A + carry; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x01 -> {A += (byte) B + carry; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x02 -> {A += (byte) C + carry; checkZero(A); checkParity(A); checkCarry(A);}
+                            case 0x03 -> {A += (byte) D + carry; checkZero(A); checkParity(A); checkCarry(A);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x01 -> {
                         switch (regB) {
-                            case 0x00 -> {B += A + carry; checkZero(B); checkParity(B); checkCarry(B);}
-                            case 0x01 -> {B += B + carry; checkZero(B); checkParity(B); checkCarry(B);}
-                            case 0x02 -> {B += C + carry; checkZero(B); checkParity(B); checkCarry(B);}
-                            case 0x03 -> {B += D + carry; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x00 -> {B += (byte) A + carry; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x01 -> {B += (byte) B + carry; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x02 -> {B += (byte) C + carry; checkZero(B); checkParity(B); checkCarry(B);}
+                            case 0x03 -> {B += (byte) D + carry; checkZero(B); checkParity(B); checkCarry(B);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x02 -> {
                         switch (regB) {
-                            case 0x00 -> {C += A + carry; checkZero(C); checkParity(C); checkCarry(C);}
-                            case 0x01 -> {C += B + carry; checkZero(C); checkParity(C); checkCarry(C);}
-                            case 0x02 -> {C += C + carry; checkZero(C); checkParity(C); checkCarry(C);}
-                            case 0x03 -> {C += D + carry; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x00 -> {C += (byte) A + carry; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x01 -> {C += (byte) B + carry; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x02 -> {C += (byte) C + carry; checkZero(C); checkParity(C); checkCarry(C);}
+                            case 0x03 -> {C += (byte) D + carry; checkZero(C); checkParity(C); checkCarry(C);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x03 -> {
                         switch (regB) {
-                            case 0x00 -> {D += A + carry; checkZero(D); checkParity(D); checkCarry(D);}
-                            case 0x01 -> {D += B + carry; checkZero(D); checkParity(D); checkCarry(D);}
-                            case 0x02 -> {D += C + carry; checkZero(D); checkParity(D); checkCarry(D);}
-                            case 0x03 -> {D += D + carry; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x00 -> {D += (byte) A + carry; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x01 -> {D += (byte) B + carry; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x02 -> {D += (byte) C + carry; checkZero(D); checkParity(D); checkCarry(D);}
+                            case 0x03 -> {D += (byte) D + carry; checkZero(D); checkParity(D); checkCarry(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
@@ -385,37 +443,37 @@ public class Cpu {
                 switch (regA) {
                     case 0x00 -> {
                         switch (regB) {
-                            case 0x00 -> {A -= (A + negative); checkZero(A); checkParity(A); checkNegative(A);}
-                            case 0x01 -> {A -= (B + negative); checkZero(A); checkParity(A); checkNegative(A);}
-                            case 0x02 -> {A -= (C + negative); checkZero(A); checkParity(A); checkNegative(A);}
-                            case 0x03 -> {A -= (D + negative); checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x00 -> {A -= (byte) (A + negative); checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x01 -> {A -= (byte) (B + negative); checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x02 -> {A -= (byte) (C + negative); checkZero(A); checkParity(A); checkNegative(A);}
+                            case 0x03 -> {A -= (byte) (D + negative); checkZero(A); checkParity(A); checkNegative(A);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x01 -> {
                         switch (regB) {
-                            case 0x00 -> {B -= (A + negative); checkZero(B); checkParity(B); checkNegative(B);}
-                            case 0x01 -> {B -= (B + negative); checkZero(B); checkParity(B); checkNegative(B);}
-                            case 0x02 -> {B -= (C + negative); checkZero(B); checkParity(B); checkNegative(B);}
-                            case 0x03 -> {B -= (D + negative); checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x00 -> {B -= (byte) (A + negative); checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x01 -> {B -= (byte) (B + negative); checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x02 -> {B -= (byte) (C + negative); checkZero(B); checkParity(B); checkNegative(B);}
+                            case 0x03 -> {B -= (byte) (D + negative); checkZero(B); checkParity(B); checkNegative(B);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x02 -> {
                         switch (regB) {
-                            case 0x00 -> {C -= (A + negative); checkZero(C); checkParity(C); checkNegative(C);}
-                            case 0x01 -> {C -= (B + negative); checkZero(C); checkParity(C); checkNegative(C);}
-                            case 0x02 -> {C -= (C + negative); checkZero(C); checkParity(C); checkNegative(C);}
-                            case 0x03 -> {C -= (D + negative); checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x00 -> {C -= (byte) (A + negative); checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x01 -> {C -= (byte) (B + negative); checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x02 -> {C -= (byte) (C + negative); checkZero(C); checkParity(C); checkNegative(C);}
+                            case 0x03 -> {C -= (byte) (D + negative); checkZero(C); checkParity(C); checkNegative(C);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
                     case 0x03 -> {
                         switch (regB) {
-                            case 0x00 -> {D -= (A + negative); checkZero(D); checkParity(D); checkNegative(D);}
-                            case 0x01 -> {D -= (B + negative); checkZero(D); checkParity(D); checkNegative(D);}
-                            case 0x02 -> {D -= (C + negative); checkZero(D); checkParity(D); checkNegative(D);}
-                            case 0x03 -> {D -= (D + negative); checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x00 -> {D -= (byte) (A + negative); checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x01 -> {D -= (byte) (B + negative); checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x02 -> {D -= (byte) (C + negative); checkZero(D); checkParity(D); checkNegative(D);}
+                            case 0x03 -> {D -= (byte) (D + negative); checkZero(D); checkParity(D); checkNegative(D);}
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
@@ -425,10 +483,10 @@ public class Cpu {
             case 0x0E -> {
                 int reg = get_byte();
                 switch (reg) {
-                    case 0x00 -> {A = ~A + 1; checkZero(A); checkParity(A); checkNegative(A);}
-                    case 0x01 -> {B = ~B + 1; checkZero(B); checkParity(B); checkNegative(B);}
-                    case 0x02 -> {C = ~C + 1; checkZero(C); checkParity(D); checkNegative(C);}
-                    case 0x03 -> {D = ~D + 1; checkZero(D); checkParity(D); checkNegative(D);}
+                    case 0x00 -> {A = (byte) ~A + 1; checkZero(A); checkParity(A); checkNegative(A);}
+                    case 0x01 -> {B = (byte) ~B + 1; checkZero(B); checkParity(B); checkNegative(B);}
+                    case 0x02 -> {C = (byte) ~C + 1; checkZero(C); checkParity(C); checkNegative(C);}
+                    case 0x03 -> {D = (byte) ~D + 1; checkZero(D); checkParity(D); checkNegative(D);}
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
@@ -444,6 +502,14 @@ public class Cpu {
             }
         }
     }
+    /**
+     * Executes stack-related instructions based on the provided opcode.
+     *
+     * @param opcode the opcode representing the specific stack operation to execute:
+     *                0x10 - push immediate byte onto the stack,
+     *                0x11 - push the value of a register (A, B, C, D) onto the stack,
+     *                0x12 - pop value from the stack into a register (A, B, C, D) and update flags.
+     */
     private void exec_STK(int opcode) {
         switch (opcode) {
             case 0x10 -> {
@@ -471,11 +537,25 @@ public class Cpu {
                 }}
         }
     }
+    /**
+     * Executes the JMP instruction based on the provided opcode.
+     *
+     * @param opcode the opcode representing the specific JMP operation to execute
+     */
     private void exec_JMP(int opcode) {
         switch (opcode) {
             case 0x13 -> IP = (get_byte() + (get_byte() << 8));
-            case 0x14 -> {push_stack(IP); IP = (get_byte() + (get_byte() << 8));}
-            case 0x15 -> IP = pop_stack();
+            case 0x14 -> {
+                int addr = (get_byte() + (get_byte() << 8));
+                push_stack((IP & 0xFF00) >> 8);
+                push_stack((IP & 0x00FF));
+                IP = addr;
+                TS = SP+2;
+            }
+            case 0x15 -> {
+                IP = pop_stack() + (pop_stack() << 8);
+                TS = SP;
+            }
             case 0x16 -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 if ((S & 0x02) != 0x00) {
@@ -490,6 +570,11 @@ public class Cpu {
             }
         }
     }
+    /**
+     * Executes the END opcode. This method sets the status register S's highest bit,
+     * and prints out the values of the registers A, B, C, D, S, instruction pointer (IP),
+     * and stack pointer (SP) in hexadecimal format.
+     */
     private void exec_END() {
         S |= 0x80;
         System.out.println("%A: " + String.format("0x%02X", A));
@@ -499,7 +584,14 @@ public class Cpu {
         System.out.println("%S: " + String.format("0x%02X", S));
         System.out.println("@IP: " + String.format("0x%04X", (IP - 1)));
         System.out.println("%SP: " + String.format("0x%02X", SP));
+        System.out.println("%TS: " + String.format("0x%02X", TS));
     }
+    /**
+     * Executes the USR instruction based on the provided opcode. This method handles
+     * conditional jumps based on the value in the status register.
+     *
+     * @param opcode the opcode representing the specific USR operation to execute
+     */
     private void exec_USR(int opcode) {
         switch (opcode) {
             case 0x19 -> {
@@ -516,6 +608,12 @@ public class Cpu {
             }
         }
     }
+    /**
+     * Executes the status instruction based on the provided opcode.
+     * This includes setting or clearing specific bits in the status register.
+     *
+     * @param opcode the opcode representing the specific status operation to execute
+     */
     private void exec_STT(int opcode) {
         switch (opcode) {
             case 0x1B -> S |= 0x01;
@@ -530,6 +628,15 @@ public class Cpu {
             case 0x24 -> S &= 0xEF;
         }
     }
+    /**
+     * Executes a LOG operation based on the given opcode.
+     * Supported operations include AND, OR, XOR, and NOT for
+     * registers A, B, C, and D.
+     *
+     * @param opcode The operation code that determines the type of
+     *               logical operation to perform and the registers
+     *               involved.
+     */
     private void exec_LOG(int opcode) {
         switch (opcode) {
             case 0x25 -> {
@@ -807,6 +914,13 @@ public class Cpu {
             }
         }
     }
+    /**
+     * Executes the EQU instruction based on the provided opcode.
+     * This method handles both equality and inequality checks between registers
+     * and adjusts the instruction pointer (IP) based on the result.
+     *
+     * @param opcode the opcode representing the specific EQU operation to execute
+     */
     private void exec_EQU(int opcode) {
         switch (opcode) {
             case 0x29 -> {
@@ -897,6 +1011,12 @@ public class Cpu {
             }
         }
     }
+    /**
+     * Executes the INQ instruction based on the provided opcode.
+     * The INQ instruction handles conditional jumps based on comparisons between registers.
+     *
+     * @param opcode the opcode representing the specific INQ operation to execute
+     */
     private void exec_INQ(int opcode) {
         switch (opcode) {
             case 0x2B -> {
@@ -987,6 +1107,12 @@ public class Cpu {
             }
         }
     }
+    /**
+     * Executes the PRN instruction based on the provided opcode. This function handles different PRN operations
+     * that involve reading a byte from memory or a register and triggering either start or stop of the print process.
+     *
+     * @param opcode the opcode representing the specific PRN operation to execute.
+     */
     private void exec_PRN(int opcode) {
         switch (opcode) {
             case 0x2D -> {
@@ -1018,6 +1144,14 @@ public class Cpu {
             case 0x2F -> stopPrint();
         }
     }
+    /**
+     * Executes the CAR (Conditional Address Redirection) instruction based on the provided opcode.
+     *
+     * This method manipulates the instruction pointer (IP) based on specific conditions
+     * and an address derived from two consecutive bytes in memory.
+     *
+     * @param opcode the opcode representing the specific CAR operation to execute
+     */
     private void exec_CAR(int opcode) {
         switch (opcode) {
             case 0x30 -> {
@@ -1034,6 +1168,11 @@ public class Cpu {
             }
         }
     }
+    /**
+     * Executes the NEG instruction based on the provided opcode.
+     *
+     * @param opcode the opcode representing the specific NEG operation to execute
+     */
     private void exec_NEG(int opcode) {
         switch (opcode) {
             case 0x32 -> {
@@ -1050,6 +1189,18 @@ public class Cpu {
             }
         }
     }
+    /**
+     * Executes PAR (Parity Check) related instructions based on the provided opcode.
+     *
+     * @param opcode the opcode representing the specific PAR operation to execute.
+     *               Supported opcodes are:
+     *               <ul>
+     *                   <li>0x34: If the specific condition on register S is met, loads
+     *                             the address computed from two subsequent bytes into IP.</li>
+     *                   <li>0x35: If the specific condition on register S is not met, loads
+     *                             the address computed from two subsequent bytes into IP.</li>
+     *               </ul>
+     */
     private void exec_PAR(int opcode) {
         switch (opcode) {
             case 0x34 -> {
@@ -1066,7 +1217,444 @@ public class Cpu {
             }
         }
     }
+    /**
+     * Executes the INDirect (IND) instruction based on the provided opcode.
+     *
+     * @param opcode The opcode representing the specific operation to execute.
+     *               Supported opcodes dictate how memory and registers are accessed
+     *               and manipulated.
+     */
+    private void exec_IND(int opcode) {
+        switch (opcode) {
+            case 0x36 -> {
+                int addr = (get_byte() + (get_byte() << 8));
+                int offset_reg = get_byte();
+                int dest_reg = get_byte();
 
+                switch (offset_reg) {
+                    case 0x00 -> {
+                        switch (dest_reg) {
+                            case 0x00 -> {
+                                A = RAM.read(addr + A);
+                                checkZero(A);
+                                checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read(addr + A);
+                                checkZero(B);
+                                checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read(addr + A);
+                                checkZero(C);
+                                checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read(addr + A);
+                                checkZero(D);
+                                checkParity(D);
+                            }
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    case 0x01 -> {
+                        switch (dest_reg) {
+                            case 0x00 -> {
+                                A = RAM.read(addr + B);
+                                checkZero(A);
+                                checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read(addr + B);
+                                checkZero(B);
+                                checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read(addr + B);
+                                checkZero(C);
+                                checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read(addr + B);
+                                checkZero(D);
+                                checkParity(D);
+                            }
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    case 0x02 -> {
+                        switch (dest_reg) {
+                            case 0x00 -> {
+                                A = RAM.read(addr + C);
+                                checkZero(A);
+                                checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read(addr + C);
+                                checkZero(B);
+                                checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read(addr + C);
+                                checkZero(C);
+                                checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read(addr + C);
+                                checkZero(D);
+                                checkParity(D);
+                            }
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    case 0x03 -> {
+                        switch (dest_reg) {
+                            case 0x00 -> {
+                                A = RAM.read(addr + D);
+                                checkZero(A);
+                                checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read(addr + D);
+                                checkZero(B);
+                                checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read(addr + D);
+                                checkZero(C);
+                                checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read(addr + D);
+                                checkZero(D);
+                                checkParity(D);
+                            }
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+            case 0x37 -> {
+                int addr = (get_byte() + (get_byte() << 8));
+                int offset_val = get_byte();
+                int dest_reg = get_byte();
+
+                switch (dest_reg) {
+                    case 0x00 -> {
+                        A = RAM.read(addr + offset_val);
+                        checkZero(A);
+                        checkParity(A);
+                    }
+                    case 0x01 -> {
+                        B = RAM.read(addr + offset_val);
+                        checkZero(B);
+                        checkParity(B);
+                    }
+                    case 0x02 -> {
+                        C = RAM.read(addr + offset_val);
+                        checkZero(C);
+                        checkParity(C);
+                    }
+                    case 0x03 -> {
+                        D = RAM.read(addr + offset_val);
+                        checkZero(D);
+                        checkParity(D);
+                    }
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+            case 0x38 -> {
+                int offset_reg = get_byte();
+                int dest_reg = get_byte();
+
+                switch (offset_reg) {
+                    case 0x00 -> {
+                        switch (dest_reg) {
+                            case 0x00 -> {
+                                A = RAM.read(SP + A);
+                                checkZero(A);
+                                checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read(SP + A);
+                                checkZero(B);
+                                checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read(SP + A);
+                                checkZero(C);
+                                checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read(SP + A);
+                                checkZero(D);
+                                checkParity(D);
+                            }
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    case 0x01 -> {
+                        switch (dest_reg) {
+                            case 0x00 -> {
+                                A = RAM.read(SP + B);
+                                checkZero(A);
+                                checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read(SP + B);
+                                checkZero(B);
+                                checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read(SP + B);
+                                checkZero(C);
+                                checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read(SP + B);
+                                checkZero(D);
+                                checkParity(D);
+                            }
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    case 0x02 -> {
+                        switch (dest_reg) {
+                            case 0x00 -> {
+                                A = RAM.read(SP + C);
+                                checkZero(A);
+                                checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read(SP + C);
+                                checkZero(B);
+                                checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read(SP + C);
+                                checkZero(C);
+                                checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read(SP + C);
+                                checkZero(D);
+                                checkParity(D);
+                            }
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    case 0x03 -> {
+                        switch (dest_reg) {
+                            case 0x00 -> {
+                                A = RAM.read(SP + D);
+                                checkZero(A);
+                                checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read(SP + D);
+                                checkZero(B);
+                                checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read(SP + D);
+                                checkZero(C);
+                                checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read(SP + D);
+                                checkZero(D);
+                                checkParity(D);
+                            }
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+            case 0x39 -> {
+                int offset_val = get_byte();
+                int dest_reg = get_byte();
+
+                switch (dest_reg) {
+                    case 0x00 -> {
+                        A = RAM.read(SP + offset_val);
+                        checkZero(A);
+                        checkParity(A);
+                    }
+                    case 0x01 -> {
+                        B = RAM.read(SP + offset_val);
+                        checkZero(B);
+                        checkParity(B);
+                    }
+                    case 0x02 -> {
+                        C = RAM.read(SP + offset_val);
+                        checkZero(C);
+                        checkParity(C);
+                    }
+                    case 0x03 -> {
+                        D = RAM.read(SP + offset_val);
+                        checkZero(D);
+                        checkParity(D);
+                    }
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+        }
+    }
+    /**
+     * Executes a temporary operation based on the provided opcode. This method
+     * processes multiple possible operations by reading from memory and updating
+     * specific registers while also performing checks on their resulting values.
+     *
+     * @param opcode The operation code that determines which set of actions to execute.
+     */
+    private void exec_TMP(int opcode) {
+        switch (opcode) {
+            case 0x3A -> {
+                int offset_reg = get_byte();
+                int dest_reg = get_byte();
+
+                switch (offset_reg) {
+                    case 0x00 -> {
+                        switch (dest_reg) {
+                            case 0x00 -> {
+                                A = RAM.read(TS + A);
+                                checkZero(A);
+                                checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read(TS + A);
+                                checkZero(B);
+                                checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read(TS + A);
+                                checkZero(C);
+                                checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read(TS + A);
+                                checkZero(D);
+                                checkParity(D);
+                            }
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    case 0x01 -> {
+                        switch (dest_reg) {
+                            case 0x00 -> {
+                                A = RAM.read(TS + B);
+                                checkZero(A);
+                                checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read(TS + B);
+                                checkZero(B);
+                                checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read(TS + B);
+                                checkZero(C);
+                                checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read(TS + B);
+                                checkZero(D);
+                                checkParity(D);
+                            }
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    case 0x02 -> {
+                        switch (dest_reg) {
+                            case 0x00 -> {
+                                A = RAM.read(TS + C);
+                                checkZero(A);
+                                checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read(TS + C);
+                                checkZero(B);
+                                checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read(TS + C);
+                                checkZero(C);
+                                checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read(TS + C);
+                                checkZero(D);
+                                checkParity(D);
+                            }
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    case 0x03 -> {
+                        switch (dest_reg) {
+                            case 0x00 -> {
+                                A = RAM.read(TS + D);
+                                checkZero(A);
+                                checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read(TS + D);
+                                checkZero(B);
+                                checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read(TS + D);
+                                checkZero(C);
+                                checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read(TS + D);
+                                checkZero(D);
+                                checkParity(D);
+                            }
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+            case 0x3B -> {
+                int offset_val = get_byte();
+                int dest_reg = get_byte();
+
+                switch (dest_reg) {
+                    case 0x00 -> {
+                        A = RAM.read(TS + offset_val);
+                        checkZero(A);
+                        checkParity(A);
+                    }
+                    case 0x01 -> {
+                        B = RAM.read(TS + offset_val);
+                        checkZero(B);
+                        checkParity(B);
+                    }
+                    case 0x02 -> {
+                        C = RAM.read(TS + offset_val);
+                        checkZero(C);
+                        checkParity(C);
+                    }
+                    case 0x03 -> {
+                        D = RAM.read(TS + offset_val);
+                        checkZero(D);
+                        checkParity(D);
+                    }
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+        }
+    }
+
+    /**
+     * Updates the status register S based on whether the provided data is zero.
+     *
+     * @param data the integer value to check for zero
+     */
     private void checkZero(int data) {
         if (data == 0x00) {
             S |= 0x02;
@@ -1074,6 +1662,13 @@ public class Cpu {
             S &= 0xFD;
         }
     }
+    /**
+     * Checks if the provided data is negative and updates the status register S accordingly.
+     * If the data is greater than 0xFF, sets the 3rd bit of the status register S.
+     * Otherwise, clears the 3rd bit of the status register S.
+     *
+     * @param data The data to be checked for negativity.
+     */
     private void checkNegative(int data) {
         if (data > 0xFF) {
             S |= 0x04;
@@ -1081,6 +1676,13 @@ public class Cpu {
             S &= 0xFB;
         }
     }
+    /**
+     * Checks the carry flag in the status register (S) based on the provided data.
+     * If the data is greater than 0xFF, it sets the carry flag.
+     * Otherwise, it clears the carry flag.
+     *
+     * @param data the integer value to check against the carry flag condition
+     */
     private void checkCarry(int data) {
         if (data > 0xFF) {
             S |= 0x10;
@@ -1088,6 +1690,12 @@ public class Cpu {
             S &= 0xEF;
         }
     }
+    /**
+     * Checks the parity of the given data.
+     * Parity is determined by counting the number of bits set to 1 in the data.
+     *
+     * @param data the data for which the parity is to be checked
+     */
     private void checkParity(int data) {
         int number_of_bits = 0;
         for (int i = 0; i < 8; i++) {
@@ -1099,6 +1707,12 @@ public class Cpu {
         }
     }
 
+    /**
+     * Reverses the bits in a byte and returns the result as an integer.
+     *
+     * @param data the byte to be reversed
+     * @return an integer representation of the byte with its bits reversed
+     */
     private int flip_byte(byte data) {
         int intSize = 8;
         byte y = 0;
@@ -1109,16 +1723,34 @@ public class Cpu {
         return y;
     }
 
+    /**
+     * Pushes a value onto the stack and updates the stack pointer (SP).
+     *
+     * @param data the value to be pushed onto the stack.
+     */
     private void push_stack(int data) {
         RAM.write(data, SP);
         SP--;
     }
+    /**
+     * Initiates the print operation by setting the appropriate flag
+     * in the status register S.
+     */
     private void startPrint() {
         S|= 0x20;
     }
+    /**
+     * Halts the print operation by clearing the printing status bit in the status register S.
+     */
     private void stopPrint() {
         S &= 0xDF;
     }
+    /**
+     * Pops a value from the stack. The stack pointer (SP) is incremented to point to the next value,
+     * the value at the memory location pointed to by SP is read, and the memory location is then cleared.
+     *
+     * @return the value popped from the stack.
+     */
     private int pop_stack() {
         SP++;
         int data = RAM.read(SP);

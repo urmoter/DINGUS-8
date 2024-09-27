@@ -8,6 +8,7 @@ B |-> General purpose registers.
 C |
 D-+
 SP (prepended with 00 to get the address stored)
+TS (prepended with 00 to get the address stored), relative to SP
 S (status)
 16-bit register:
 IP (16-bit, holds current address)
@@ -19,7 +20,7 @@ IP (16-bit, holds current address)
 
 Access up-to 0xFFFF (2^16) in memory
 0xFFFF +-----+
-       |START| (0xFFFE -> 0xFFFF)
+       |START| (0xFFFE & 0xFFFF)
 0xFFFE +-----+
        |PRINT| (0xFFFD)
 0xFFFD +-----+
@@ -41,18 +42,19 @@ Access up-to 0xFFFF (2^16) in memory
 	0x6: Interrupt, (Currently not implemented).
 	0x7: Halt, set when HLT (0x18) is called, clock will be ignored.
 
-Assembly syntax:
-    Addresses prepended with @ and written in hex.
-    Data prepended with $ and written in hex.
-    Registers prepended with %
-    Comments indicated with //
-    Labels begin with LBL instruction
-    Compiler directives start with .
+Argument Types:
+    IMM8: An 8 bit argument that represents raw data.
+    IMM16: A 16 bit argument that represents raw data.
+    REG8: An 8 bit value that represents one of the four general purpose registers
+        0x00 -> A
+        0x01 -> B
+        0x02 -> C
+        0x03 -> D
 
 Instructions:
 -DIRECTIVES/NO OPCODE---------------------------------------------------------------------------------------
 1. Directives
-    1.1. .offset (IMM16): Add the IMM16 to IP, a sort of pseudo jump.
+    1.1. .setloc (IMM16): Set IP to IMM16, a sort of pseudo jump.
     1.2. .start (IMM16): Set 0xFFFE and 0xFFFF to IMM16 (setting a start address).
 2. No Opcode
     2.1. LBL (label): Store the address and name of the label (pointing to the current IP value) as a pair.
@@ -89,8 +91,12 @@ Instructions:
 	Set the data at SP to 0x00.
 -JUMPING----------------------------------------------------------------------------------------------------
 0x13: JMP (IMM16)ADR: Jump to ADR without saving IP on the stack.
-0x14: CALL (IMM16)ADR: Jump to ADR but save IP on the stack.
-0x15: RET: Pop the next 2 values (Should be IP) to IP
+0x14: CALL (IMM16)ADR:
+    Jump to ADR but save IP on the stack.
+    Set TS to SP+2;
+0x15: RET:
+    Pop the next 2 values (Should be IP) to IP
+    Set TS to 0x00;
 0x16: JZ (IMM16)ADR: Jump to ADR if Zero (Z) is set.
 0x17: JNZ (IMM16)ADR: Jump to ADR if Zero (Z) is not set.
 -END--------------------------------------------------------------------------------------------------------
@@ -137,3 +143,11 @@ Instructions:
 -PARITY-----------------------------------------------------------------------------------------------------
 0x34: JP (IMM16)ADR: Jump to ADR if Parity Flag (P) is set.
 0x35: JNP (IMM16)ADR: Jump to ADR if Parity Flag (P) is not set.
+-INDIRECT---------------------------------------------------------------------------------------------------
+0x36: INDR (IMM16)ADR (REG8)OFFSET (REG8)DEST: Copy data from ADR+OFFSET's value to DEST [Z, P].
+0x37: INDI (IMM16)ADR (IMM8)OFFSET (REG8)DEST: Copy data from ADR+OFFSET to REG [Z, P].
+0x38: INSR (REG8)OFFSET (REG8)DEST: Copy data from the SP (Stack Pointer)+OFFSET's value to DEST [Z, P].
+0x39: INSI (IMM8)OFFSET (REG8)DEST: Copy data from the SP (Stack Pointer)+OFFSET to DEST [Z, P].
+-TEMP_STACK-------------------------------------------------------------------------------------------------
+0x3A: INTR (REG8)OFFSET (REG8)DEST: Copy data from the TS (Stack Pointer)+OFFSET's value to DEST [Z, P].
+0x3B: INTI (IMM8)OFFSET (REG8)DEST: Copy data from the TS (Stack Pointer)+OFFSET to DEST [Z, P].
