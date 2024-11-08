@@ -16,7 +16,7 @@ enum OpcodeType {
     EQU,
     INQ,
     PRN,
-    CAR,
+    CAR, // The Ultimate Life Form
     NEG,
     PAR,
     IND,

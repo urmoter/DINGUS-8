@@ -11,7 +11,7 @@ public class Main {
             }
         }
 
-        Cpu CPU = new Cpu(bin_file);
+        Cpu CPU = new Cpu(bin_file); // Cocked, Locked, and ready to Rock. Fuck, that didn't rhyme.
         CPU.start(); // Let's get this shit-show going.
     }
 }
