@@ -63,7 +63,7 @@ public class Cpu {
     /**
      * Starts the execution of a process that involves reading a byte,
      * determining its opcode type, executing based on the opcode type,
-     * and optionally reading from memory depending on certain conditions.
+     * and optionally reading from memory dep   ending on certain conditions.
      *
      * The method operates within a loop that continues as long as a status
      * condition is met and a program counter is within a valid range.
@@ -131,7 +131,8 @@ public class Cpu {
     private int get_start_address() {
         int LSB = RAM.read(0xFFFE);
         int MSB = RAM.read(0xFFFF);
-
+        // Debug for when shit hits the fan
+        // System.out.printf("Start: 0x%04X%n", (MSB << 8) + LSB);
         return (MSB << 8) + LSB;
     }
 
@@ -143,6 +144,8 @@ public class Cpu {
      */
     private int get_byte() {
         int data =  RAM.read(IP);
+        // Debug for when shit hits the fan
+        // System.out.printf("0x%04X%n", IP);
         IP++;
         return data;
     }
@@ -173,8 +176,8 @@ public class Cpu {
             case 0x32, 0x33 -> OpcodeType.NEG;
             case 0x34, 0x35 -> OpcodeType.PAR;
             case 0x36, 0x37, 0x38, 0x39 -> OpcodeType.IND;
-            case 0x3A, 0x3B -> OpcodeType.TMP;
-            default -> throw new RuntimeException("INVALID OPCODE!");
+            case 0x3A, 0x3B, 0x3C -> OpcodeType.TMP;
+            default -> throw new RuntimeException("INVALID OPCODE " + String.format("0x%02X", opcode) + "!");
         };
     }
 
@@ -554,7 +557,10 @@ public class Cpu {
             }
             case 0x15 -> {
                 IP = pop_stack() + (pop_stack() << 8);
-                TS = SP;
+                // Debug for when shit hits the fan
+                // System.out.printf("Where are we going? Here: 0x%04X%n", IP);
+                SP = TS;
+                TS = 0x00;
             }
             case 0x16 -> {
                 int addr = (get_byte() + (get_byte() << 8));
@@ -947,6 +953,8 @@ public class Cpu {
                         }
                     }
                     case 0x02 -> {
+                        // Debug for when shit hits the fan
+                        // System.out.printf("0x%02X%n", regB);
                         switch (regB) {
                             case 0x00 -> {if (C == A) { IP = addr;}}
                             case 0x01 -> {if (C == B) { IP = addr;}}
@@ -1647,6 +1655,32 @@ public class Cpu {
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
+            case 0x3C -> {
+                int reg = get_byte();
+                switch (reg) {
+                    case 0x00 -> {
+                        A = pop_tstack();
+                        checkZero(A);
+                        checkParity(A);
+                    }
+                    case 0x01 -> {
+                        B = pop_tstack();
+                        checkZero(B);
+                        checkParity(B);
+                    }
+                    case 0x02 -> {
+                        C = pop_tstack();
+                        checkZero(C);
+                        checkParity(C);
+                    }
+                    case 0x03 -> {
+                        D = pop_tstack();
+                        checkZero(D);
+                        checkParity(D);
+                    }
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
         }
     }
 
@@ -1755,6 +1789,20 @@ public class Cpu {
         SP++;
         int data = RAM.read(SP);
         RAM.write(0x00, SP);
+        return data;
+    }
+    /**
+     * Pops the top element from the TStack.
+     * The method increments the stack pointer TS, reads the value at the new
+     * top of the stack from RAM, resets the value at that position to zero,
+     * and then returns the value that was read.
+     *
+     * @return The integer value that was at the top of the TStack before it was removed.
+     */
+    private int pop_tstack() {
+        TS++;
+        int data = RAM.read(TS);
+        RAM.write(0x00, TS);
         return data;
     }
 }
