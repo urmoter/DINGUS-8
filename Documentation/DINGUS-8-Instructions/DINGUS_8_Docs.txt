@@ -43,8 +43,8 @@ Access up-to 0xFFFF (2^16) in memory
 	0x7: Halt, set when HLT (0x18) is called, clock will be ignored.
 
 Argument Types:
-    IMM8: An 8 bit argument that represenBP raw data, one byte wide.
-    IMM16: A 16 bit argument that represenBP raw data, 2 bytes wide.
+    IMM8: An 8 bit argument that represents raw data, one byte wide.
+    IMM16: A 16 bit argument that represents raw data, 2 bytes wide.
     REG8: An 8 bit value that represenBP one of the four general purpose registers, one byte wide.
         0x00 represenBP A
         0x01 represenBP B
@@ -54,7 +54,7 @@ Argument Types:
 Instructions:
 -DIRECTIVES/NO OPCODE---------------------------------------------------------------------------------------
 1. Directives
-    1.1. .setloc (IMM16): Set IP to IMM16, a sort of pseudo jump.
+    1.1. .setloc (IMM16): Set compiler IP to IMM16, a sort of pseudo jump.
     1.2. .start (IMM16): Set 0xFFFE and 0xFFFF to IMM16 (setting a start address).
 2. No Opcode
     2.1. LBL (label): Store the address and name of the label (pointing to the current IP value) as a pair.
