@@ -6,6 +6,6 @@
 *.bin
 *.uasm
 tests
-../out/
+out/
 *.hs
 .DS_Store
