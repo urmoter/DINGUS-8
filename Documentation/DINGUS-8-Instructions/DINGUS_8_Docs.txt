@@ -36,7 +36,7 @@ Access up-to 0xFFFF (2^16) in memory
 	0x0: User Flag, dedicated for the user to modify.
 	0x1: Zero, set if a register receives a 0x00 value.
 	0x2: Negative, Overflow in Subtraction.
-	0x3: Parity, 1 if odd, 0 if even number of biBP.
+	0x3: Parity, 1 if odd, 0 if even number of bits.
 	0x4: Carry, Overflow in Addition.
 	0x5: Terminal, Active while printing to the Terminal memory address.
 	0x6: Interrupt, (Currently not implemented).
@@ -45,11 +45,13 @@ Access up-to 0xFFFF (2^16) in memory
 Argument Types:
     IMM8: An 8 bit argument that represents raw data, one byte wide.
     IMM16: A 16 bit argument that represents raw data, 2 bytes wide.
-    REG8: An 8 bit value that represenBP one of the four general purpose registers, one byte wide.
-        0x00 represenBP A
-        0x01 represenBP B
-        0x02 represenBP C
-        0x03 represenBP D
+    REG8: An 8 bit value that represents one of the four general purpose registers, one byte wide.
+        0x00 represents A
+        0x01 represents B
+        0x02 represents C
+        0x03 represents D
+
+Stack grows downwards
 
 Instructions:
 -DIRECTIVES/NO OPCODE---------------------------------------------------------------------------------------
@@ -145,7 +147,4 @@ Instructions:
 0x34: JP (IMM16)Address: Jump to Address if Parity Flag (P) is set.
 0x35: JNP (IMM16)Address: Jump to Address if Parity Flag (P) is not set.
 -TEMP-------------------------------------------------------------------------------------------------------
-0x36: IACI (IMM8)OFFSET (REG8)Destination: Copy data from the BP (Stack Pointer)+OFFSET to Destination [Z, P].
--STKP-------------------------------------------------------------------------------------------------------
-0x37: MSPU (IMM8)OFFSET: Move stack pointer up by OFFSET
-0x38: MSPD (IMM8)OFFSET: Move stack pointer down by OFFSET
+0x36: IBPR (IMM8)OFFSET (REG8)Destination: Copy data from the BP (Stack Pointer)+OFFSET to Destination [Z, P].

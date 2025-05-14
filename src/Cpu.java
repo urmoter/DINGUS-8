@@ -20,7 +20,6 @@ enum OpcodeType {
     NEG,
     PAR,
     TMP,
-    STP,
 }
 
 public class Cpu {
@@ -33,6 +32,7 @@ public class Cpu {
     private int IP;
     private int SP = 0xFF;
     private int BP = SP;
+    private int RR = 0;
 
     public Cpu(String bin_file) {
         int arr;
@@ -87,7 +87,6 @@ public class Cpu {
             case NEG -> exec_NEG(data);
             case PAR -> exec_PAR(data);
             case TMP -> exec_TMP();
-            case STP -> exec_STKP(data);
         }
     }
 
@@ -126,7 +125,6 @@ public class Cpu {
             case 0x32, 0x33 -> OpcodeType.NEG;
             case 0x34, 0x35 -> OpcodeType.PAR;
             case 0x36 -> OpcodeType.TMP;
-            case 0x37, 0x38 -> OpcodeType.STP;
             default -> throw new RuntimeException("INVALID OPCODE " + String.format("0x%02X", opcode) + "!");
         };
     }
@@ -474,16 +472,18 @@ public class Cpu {
             case 0x13 -> IP = (get_byte() + (get_byte() << 8));
             case 0x14 -> {
                 int dest = (get_byte() + (get_byte() << 8));
-                int IP_RET = IP;
-                int BP_RET = BP;
-                push_stack(BP_RET);
-                BP = IP;
-                push_stack(IP_RET);
+                // Set return register to the next instruction
+                RR = IP++;
+                // Set base pointer for Arg reference
+                BP = SP;
+                // Get to the called code
                 IP = dest;
             }
             case 0x15 -> {
-                IP = pop_stack();
-                BP = pop_stack();
+                // Set SP back to BP (incase any local variables were made)
+                SP = BP;
+                // Return to the caller
+                IP = RR;
             }
             case 0x16 -> {
                 int addr = (get_byte() + (get_byte() << 8));
@@ -1097,19 +1097,6 @@ public class Cpu {
             case 0x01 -> {B = RAM.read(BP+OFFSET); checkZero(A); checkParity(A);}
             case 0x02 -> {C = RAM.read(BP+OFFSET); checkZero(A); checkParity(A);}
             case 0x03 -> {D = RAM.read(BP+OFFSET); checkZero(A); checkParity(A);}
-        }
-    }
-
-    private void exec_STKP(int opcode) {
-        switch (opcode) {
-            case 0x37 -> {
-                int OFFSET = get_byte();
-                SP += OFFSET;
-            }
-            case 0x38 -> {
-                int OFFSET = get_byte();
-                SP -= OFFSET;
-            }
         }
     }
 
