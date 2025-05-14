@@ -1,6 +1,0 @@
-*.bin
-*.uasm
-tests
-out/
-*.hs
-.DS_Store
