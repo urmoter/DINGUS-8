@@ -2,6 +2,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+
+// Merry Christmas, or whatever it is, most of these comments are a retrospective of my sleep-deprived code from 2 A.M.
+// I am scared.
+
+
 enum OpcodeType {
     NOP,
     MOV,
@@ -35,36 +40,51 @@ public class Cpu {
     private int RR = 0;
 
     public Cpu(String bin_file) {
-        // 
-        int arr;
+        // Declare the transfer variable
+        byte data;
+        // Attempt to open the provided Simulated Ram Binary File
         File bin = new File(bin_file);
 
+        // Try to read from the file
         try (FileInputStream stream = new FileInputStream(bin)) {
+            // Set an index for the file (address in ram)
             int i = 0;
-
-            while ((arr = stream.read()) != -1) {
-                RAM.write(arr, i++);
+            // write each byte of the file to the Emulated Ram
+            while ((data = (byte) stream.read()) != -1) {
+                RAM.write(data, i++);
             }
-
+        // How did this even fucking happen???
         } catch (IOException error) {
             System.out.println("Uh Oh! We had an issue reading the binary file!");
             throw new RuntimeException(error);
         }
-
+        // Let's start this shit!
         IP = get_start_address();
     }
 
     public void start() {
+        // set the holder for data read from memory
         int data;
+        /*
+          set the type variable, to hold what type
+          of operation the data value is
+        */
         OpcodeType type;
 
+        // Run this as long as:
+        //  1: We haven't wrapped around to 0x0000
+        //  2: The exit flag isn't set
         while (((S & 0x80) == 0) && (IP <= 0xFFFF)) {
+            // Get a byte from memory
             data = get_byte();
+            // Get what type of operation the byte is
             type = determine_opcode_type(data);
+            // If the terminal flag is set, and we haven't wrapped around,
+            // print the character in the terminal address.
             if (((S &= 0x20) != 0x00) && IP <= 0xFFFF) {
                 System.out.print(RAM.read(0xFFFD));
             }
-
+            // Execute the operation
             type_exec(data, type);
         }
     }
@@ -92,6 +112,7 @@ public class Cpu {
     }
 
     private int get_start_address() {
+        // return the combined values for [0xFFFF] + [0xFFFE]
         int LSB = RAM.read(0xFFFE);
         int MSB = RAM.read(0xFFFF);
         // Debug for when shit hits the fan
@@ -189,6 +210,7 @@ public class Cpu {
 
     private void exec_MEM(int opcode) {
         switch (opcode) {
+            // STR
             case 0x06 -> {
                 int reg = get_byte();
                 int addr = (get_byte() + (get_byte() << 8));
@@ -201,7 +223,7 @@ public class Cpu {
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
-
+            // LDR
             case 0x07 -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 int reg = get_byte();
@@ -218,9 +240,11 @@ public class Cpu {
     }
 
     private void exec_MTH(int opcode) {
+
         int carry = ((S & 0x10) != 0x00) ? 1 : 0;
         int negative = ((S & 0x04) != 0x00) ? 1 : 0;
         switch (opcode) {
+            // ADD
             case 0x08 -> {
                 int regA = get_byte();
                 int regB = get_byte();
@@ -265,6 +289,7 @@ public class Cpu {
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
+            // SUB
             case 0x09 -> {
                 int regA = get_byte();
                 int regB = get_byte();
@@ -309,6 +334,7 @@ public class Cpu {
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
+            // INC
             case 0x0A -> {
                 int reg = get_byte();
                 switch (reg) {
@@ -319,6 +345,7 @@ public class Cpu {
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
+            // DEC
             case 0x0B -> {
                 int reg = get_byte();
                 switch (reg) {
@@ -329,6 +356,7 @@ public class Cpu {
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
+            // ADC
             case 0x0C -> {
                 int regA = get_byte();
                 int regB = get_byte();
@@ -373,6 +401,7 @@ public class Cpu {
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
+            // SBB
             case 0x0D -> {
                 int regA = get_byte();
                 int regB = get_byte();
@@ -417,6 +446,7 @@ public class Cpu {
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
+            // NEG
             case 0x0E -> {
                 int reg = get_byte();
                 switch (reg) {
@@ -427,6 +457,7 @@ public class Cpu {
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
+            // FLP
             case 0x0F -> {
                 int reg = get_byte();
                 switch (reg) {
@@ -442,10 +473,12 @@ public class Cpu {
 
     private void exec_STK(int opcode) {
         switch (opcode) {
+            // PSHI
             case 0x10 -> {
                 int data = get_byte();
                 push_stack(data);
             }
+            // PSHR
             case 0x11 -> {
                 int reg = get_byte();
                 switch (reg) {
@@ -456,6 +489,7 @@ public class Cpu {
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
+            // POP
             case 0x12 -> {
                 int reg = get_byte();
                 switch (reg) {
@@ -470,7 +504,9 @@ public class Cpu {
 
     private void exec_JMP(int opcode) {
         switch (opcode) {
+            // JMP
             case 0x13 -> IP = (get_byte() + (get_byte() << 8));
+            // CALL
             case 0x14 -> {
                 int dest = (get_byte() + (get_byte() << 8));
                 // Set return register to the next instruction
@@ -480,18 +516,21 @@ public class Cpu {
                 // Get to the called code
                 IP = dest;
             }
+            // RET
             case 0x15 -> {
                 // Set SP back to BP (incase any local variables were made)
                 SP = BP;
                 // Return to the caller
                 IP = RR;
             }
+            // JZ
             case 0x16 -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 if ((S & 0x02) != 0x00) {
                     IP = addr;
                 }
             }
+            // JNZ
             case 0x17 -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 if ((S & 0x02) == 0x00) {
@@ -502,6 +541,7 @@ public class Cpu {
     }
 
     private void exec_END() {
+        // END
         S |= 0x80;
         System.out.println("%A: " + String.format("0x%02X", A));
         System.out.println("%B: " + String.format("0x%02X", B));
@@ -515,12 +555,14 @@ public class Cpu {
 
     private void exec_USR(int opcode) {
         switch (opcode) {
+            // JU
             case 0x19 -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 if ((S & 0x01) != 0x00) {
                     IP = addr;
                 }
             }
+            // JNU
             case 0x1A -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 if ((S & 0x01) == 0x00) {
@@ -532,21 +574,32 @@ public class Cpu {
 
     private void exec_STT(int opcode) {
         switch (opcode) {
+            // SETU
             case 0x1B -> S |= 0x01;
+            // CLRU
             case 0x1C -> S &= 0xFE;
+            // SETZ
             case 0x1D -> S |= 0x02;
+            // CLRZ
             case 0x1E -> S &= 0xFD;
+            // SETN
             case 0x1F -> S |= 0x04;
+            // CLRN
             case 0x20 -> S &= 0xFB;
+            // SETP
             case 0x21 -> S |= 0x08;
+            // CLRP
             case 0x22 -> S &= 0xF7;
+            // SETC
             case 0x23 -> S |= 0x10;
+            // CLRC
             case 0x24 -> S &= 0xEF;
         }
     }
 
     private void exec_LOG(int opcode) {
         switch (opcode) {
+            // AND
             case 0x25 -> {
                 int regA = get_byte();
                 int regB = get_byte();
@@ -629,6 +682,7 @@ public class Cpu {
                     }
                 }
             }
+            // OR
             case 0x26 -> {
                 int regA = get_byte();
                 int regB = get_byte();
@@ -720,6 +774,7 @@ public class Cpu {
                     }
                 }
             }
+            // XOR
             case 0x27 -> {
                 int regA = get_byte();
                 int regB = get_byte();
@@ -811,6 +866,7 @@ public class Cpu {
                     }
                 }
             }
+            // NOT
             case 0x28 -> {
                 int reg = get_byte();
                 switch (reg) {
@@ -825,6 +881,7 @@ public class Cpu {
 
     private void exec_EQU(int opcode) {
         switch (opcode) {
+            // JE
             case 0x29 -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 int regA = get_byte();
@@ -870,6 +927,7 @@ public class Cpu {
                     }
                 }
             }
+            // JNE
             case 0x2A -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 int regA = get_byte();
@@ -918,6 +976,7 @@ public class Cpu {
 
     private void exec_INQ(int opcode) {
         switch (opcode) {
+            // JG
             case 0x2B -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 int regA = get_byte();
@@ -961,6 +1020,7 @@ public class Cpu {
                     }
                 }
             }
+            // JL
             case 0x2C -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 int regA = get_byte();
@@ -1009,11 +1069,13 @@ public class Cpu {
 
     private void exec_PRN(int opcode) {
         switch (opcode) {
+            // PRNI
             case 0x2D -> {
                 int data = get_byte();
                 RAM.write(data, 0xFFFD);
                 startPrint();
             }
+            // PRNR
             case 0x2E -> {
                 int reg = get_byte();
                 switch (reg) {
@@ -1035,18 +1097,21 @@ public class Cpu {
                     }
                 }
             }
+            // ENPR
             case 0x2F -> stopPrint();
         }
     }
 
     private void exec_CAR(int opcode) {
         switch (opcode) {
+            // JC
             case 0x30 -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 if ((S & 0x10) != 0x00) {
                     IP = addr;
                 }
             }
+            // JNC
             case 0x31 -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 if ((S & 0x10) == 0x00) {
@@ -1058,12 +1123,14 @@ public class Cpu {
 
     private void exec_NEG(int opcode) {
         switch (opcode) {
+            // JN
             case 0x32 -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 if ((S & 0x04) != 0x00) {
                     IP = addr;
                 }
             }
+            // JNN
             case 0x33 -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 if ((S & 0x04) == 0x00) {
@@ -1075,12 +1142,14 @@ public class Cpu {
 
     private void exec_PAR(int opcode) {
         switch (opcode) {
+            // JP
             case 0x34 -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 if ((S & 0x08) != 0x00) {
                     IP = addr;
                 }
             }
+            // JNP
             case 0x35 -> {
                 int addr = (get_byte() + (get_byte() << 8));
                 if ((S & 0x08) == 0x00) {
@@ -1091,6 +1160,7 @@ public class Cpu {
     }
 
     private void exec_TMP() {
+        // IBPR
         int OFFSET = get_byte();
         int DEST = get_byte();
         switch (DEST) {
