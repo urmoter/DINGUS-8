@@ -1,8 +1,8 @@
 Little Endian (0xFFFE -> |0xFE|0xFF|)
 8-bit data bus
 16-bit address bus
-8-bit registers: (max value is 0xFF anything over will wrap around)
 
+8-bit registers: (max value is 0xFF anything over will wrap around)
 A-+
 B |-> General purpose registers.
 C |
@@ -10,8 +10,13 @@ D-+
 SP (prepended with 00 to get the address stored)
 BP (prepended with 00 to get the address stored), relative to SP
 S (status)
+RH/RL (see below)
+
 16-bit register:
 IP (16-bit, holds current address)
+R (16-bit, saves return addresses on calls):
+    made of RL and RH, which are 2 8-bit registers that are put together
+    RH and RL can only be modified/used via PSHR, POP, CALL, and RET
 
 0xFFFE and 0xFFFF make the starting IP location:
         (0xFFFF)(0xFFFE)
@@ -50,6 +55,8 @@ Argument Types:
         0x01 represents B
         0x02 represents C
         0x03 represents D
+        0x04 represents RL
+        0x05 represents RH
 
 Stack grows downwards
 
@@ -148,3 +155,5 @@ Instructions:
 0x35: JNP (IMM16)Address: Jump to Address if Parity Flag (P) is not set.
 -TEMP-------------------------------------------------------------------------------------------------------
 0x36: IBPR (IMM8)OFFSET (REG8)Destination: Copy data from the BP (Stack Pointer)+OFFSET to Destination [Z, P].
+-OFFSET-----------------------------------------------------------------------------------------------------
+0x37: LDRO (IMM16)Address, (REG8)OFFSET, (REG8)Destination: Copy data from the byte in memory pointed to by Address+(OFFSET's value) to Destination [Z, P].

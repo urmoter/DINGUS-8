@@ -25,6 +25,7 @@ enum OpcodeType {
     NEG,
     PAR,
     TMP,
+    OFS,
 }
 
 public class Cpu {
@@ -37,7 +38,7 @@ public class Cpu {
     private int IP;
     private int SP = 0xFF;
     private int BP = SP;
-    private int RR = 0;
+    private int R = 0;
 
     public Cpu(String bin_file) {
         // Declare the transfer variable
@@ -81,8 +82,13 @@ public class Cpu {
             type = determine_opcode_type(data);
             // If the terminal flag is set, and we haven't wrapped around,
             // print the character in the terminal address.
+
+            // DEBUG
+            // System.out.println("Address: " + String.format("0x%04X", IP-1));
+            // System.out.println("Byte " + String.format("0x%02X", data) + "; Type " + type);
+
             if (((S &= 0x20) != 0x00) && IP <= 0xFFFF) {
-                System.out.print(RAM.read(0xFFFD));
+                System.out.print((char) RAM.read(0xFFFD));
             }
             // Execute the operation
             type_exec(data, type);
@@ -108,6 +114,7 @@ public class Cpu {
             case NEG -> exec_NEG(data);
             case PAR -> exec_PAR(data);
             case TMP -> exec_TMP();
+            case OFS -> exec_OFS();
         }
     }
 
@@ -147,6 +154,7 @@ public class Cpu {
             case 0x32, 0x33 -> OpcodeType.NEG;
             case 0x34, 0x35 -> OpcodeType.PAR;
             case 0x36 -> OpcodeType.TMP;
+            case 0x37 -> OpcodeType.OFS;
             default -> throw new RuntimeException("INVALID OPCODE " + String.format("0x%02X", opcode) + "!");
         };
     }
@@ -486,6 +494,8 @@ public class Cpu {
                     case 0x01 -> push_stack(B);
                     case 0x02 -> push_stack(C);
                     case 0x03 -> push_stack(D);
+                    case 0x04 -> push_stack((byte) R);
+                    case 0x05 -> push_stack((byte) (R>>8));
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
@@ -497,6 +507,8 @@ public class Cpu {
                     case 0x01 -> {B = pop_stack(); checkZero(B); checkParity(B);}
                     case 0x02 -> {C = pop_stack(); checkZero(C); checkParity(C);}
                     case 0x03 -> {D = pop_stack(); checkZero(D); checkParity(D);}
+                    case 0x04 -> {R = (R & 0xFF00) + ((byte) pop_stack()); checkZero((byte) R); checkParity((byte) R);}
+                    case 0x05 -> {R = (R & 0x00FF) + ((byte) (pop_stack() << 8)); checkZero((byte) (R>>8)); checkParity((byte) (R>>8));}
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }}
         }
@@ -510,7 +522,7 @@ public class Cpu {
             case 0x14 -> {
                 int dest = (get_byte() + (get_byte() << 8));
                 // Set return register to the next instruction
-                RR = IP++;
+                R = IP++;
                 // Set base pointer for Arg reference
                 BP = SP;
                 // Get to the called code
@@ -521,7 +533,7 @@ public class Cpu {
                 // Set SP back to BP (incase any local variables were made)
                 SP = BP;
                 // Return to the caller
-                IP = RR;
+                IP = R;
             }
             // JZ
             case 0x16 -> {
@@ -1168,6 +1180,132 @@ public class Cpu {
             case 0x01 -> {B = RAM.read(BP+OFFSET); checkZero(A); checkParity(A);}
             case 0x02 -> {C = RAM.read(BP+OFFSET); checkZero(A); checkParity(A);}
             case 0x03 -> {D = RAM.read(BP+OFFSET); checkZero(A); checkParity(A);}
+        }
+    }
+
+    private void exec_OFS() {
+        int addr = (get_byte() + (get_byte() << 8));
+        int OFFSET = get_byte();
+        int dest = get_byte();
+
+        switch (dest) {
+            case 0x00 -> {
+                switch (OFFSET) {
+                    case 0x00 -> {
+                        A = RAM.read(addr+A);
+                        checkZero(A);
+                        checkParity(A);
+                        checkCarry(A);
+                    }
+                    case 0x01 -> {
+                        A = RAM.read(addr+B);
+                        checkZero(A);
+                        checkParity(A);
+                        checkCarry(A);
+                    }
+                    case 0x02 -> {
+                        A = RAM.read(addr+C);
+                        checkZero(A);
+                        checkParity(A);
+                        checkCarry(A);
+                    }
+                    case 0x03 -> {
+                        A = RAM.read(addr+D);
+                        checkZero(A);
+                        checkParity(A);
+                        checkCarry(A);
+                    }
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+            case 0x01 -> {
+                switch (OFFSET) {
+                    case 0x00 -> {
+                        B = RAM.read(addr+A);
+                        checkZero(B);
+                        checkParity(B);
+                        checkCarry(B);
+                    }
+                    case 0x01 -> {
+                        B = RAM.read(addr+B);
+                        checkZero(B);
+                        checkParity(B);
+                        checkCarry(B);
+                    }
+                    case 0x02 -> {
+                        B = RAM.read(addr+C);
+                        checkZero(B);
+                        checkParity(B);
+                        checkCarry(B);
+                    }
+                    case 0x03 -> {
+                        B = RAM.read(addr+D);
+                        checkZero(B);
+                        checkParity(B);
+                        checkCarry(B);
+                    }
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+            case 0x02 -> {
+                switch (OFFSET) {
+                    case 0x00 -> {
+                        C = RAM.read(addr+A);
+                        checkZero(C);
+                        checkParity(C);
+                        checkCarry(C);
+                    }
+                    case 0x01 -> {
+                        C = RAM.read(addr+B);
+                        checkZero(C);
+                        checkParity(C);
+                        checkCarry(C);
+                    }
+                    case 0x02 -> {
+                        C = RAM.read(addr+C);
+                        checkZero(C);
+                        checkParity(C);
+                        checkCarry(C);
+                    }
+                    case 0x03 -> {
+                        C = RAM.read(addr+D);
+                        checkZero(C);
+                        checkParity(C);
+                        checkCarry(C);
+                    }
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+            case 0x03 -> {
+                switch (OFFSET) {
+                    case 0x00 -> {
+                        D = RAM.read(addr+A);
+                        checkZero(D);
+                        checkParity(D);
+                        checkCarry(D);
+                    }
+                    case 0x01 -> {
+                        D = RAM.read(addr+B);
+                        checkZero(D);
+                        checkParity(D);
+                        checkCarry(D);
+                    }
+                    case 0x02 -> {
+                        D = RAM.read(addr+C);
+                        checkZero(D);
+                        checkParity(D);
+                        checkCarry(D);
+                    }
+                    case 0x03 -> {
+                        D = RAM.read(addr+D);
+                        checkZero(D);
+                        checkParity(D);
+                        checkCarry(D);
+                    }
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+            default -> throw new RuntimeException("INVALID REGISTER");
         }
     }
 
