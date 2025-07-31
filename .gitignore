@@ -9,3 +9,4 @@ tests/
 out/
 *.hs
 .DS_Store
+out/production/dingus-8/*.class

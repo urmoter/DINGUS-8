@@ -38,7 +38,7 @@ public class Cpu {
     private int IP;
     private int SP = 0xFF;
     private int BP = SP;
-    private int R = 0;
+    private int R = 0x0000;
 
     public Cpu(String bin_file) {
         // Declare the transfer variable
@@ -494,8 +494,6 @@ public class Cpu {
                     case 0x01 -> push_stack(B);
                     case 0x02 -> push_stack(C);
                     case 0x03 -> push_stack(D);
-                    case 0x04 -> push_stack((byte) R);
-                    case 0x05 -> push_stack((byte) (R>>8));
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
@@ -507,8 +505,6 @@ public class Cpu {
                     case 0x01 -> {B = pop_stack(); checkZero(B); checkParity(B);}
                     case 0x02 -> {C = pop_stack(); checkZero(C); checkParity(C);}
                     case 0x03 -> {D = pop_stack(); checkZero(D); checkParity(D);}
-                    case 0x04 -> {R = (R & 0xFF00) + ((byte) pop_stack()); checkZero((byte) R); checkParity((byte) R);}
-                    case 0x05 -> {R = (R & 0x00FF) + ((byte) (pop_stack() << 8)); checkZero((byte) (R>>8)); checkParity((byte) (R>>8));}
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }}
         }

@@ -14,9 +14,7 @@ RH/RL (see below)
 
 16-bit register:
 IP (16-bit, holds current address)
-R (16-bit, saves return addresses on calls):
-    made of RL and RH, which are 2 8-bit registers that are put together
-    RH and RL can only be modified/used via PSHR, POP, CALL, and RET
+R (16-bit, saves return addresses on calls), only affected by CALL and RET
 
 0xFFFE and 0xFFFF make the starting IP location:
         (0xFFFF)(0xFFFE)
@@ -55,8 +53,6 @@ Argument Types:
         0x01 represents B
         0x02 represents C
         0x03 represents D
-        0x04 represents RL
-        0x05 represents RH
 
 Stack grows downwards
 
