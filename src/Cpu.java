@@ -26,6 +26,7 @@ enum OpcodeType {
     PAR,
     TMP,
     OFS,
+    WID,
 }
 
 public class Cpu {
@@ -155,6 +156,7 @@ public class Cpu {
             case 0x34, 0x35 -> OpcodeType.PAR;
             case 0x36 -> OpcodeType.TMP;
             case 0x37 -> OpcodeType.OFS;
+            case 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40, 0x41 -> OpcodeType.WID;
             default -> throw new RuntimeException("INVALID OPCODE " + String.format("0x%02X", opcode) + "!");
         };
     }
@@ -1302,6 +1304,309 @@ public class Cpu {
                 }
             }
             default -> throw new RuntimeException("INVALID REGISTER");
+        }
+    }
+
+    private void exec_WID(int opcode) {
+        switch (opcode) {
+            // MOVW
+            case 0x38 -> {
+                int reg = get_byte();
+                int lo = get_byte();
+                int hi = get_byte();
+
+                switch (reg) {
+                    case 0x04 -> {
+                        A = hi; B = lo;
+                        checkZero(A); checkParity(A);
+                        checkZero(B); checkParity(B);
+                    }
+                    case 0x05 -> {
+                        C = hi; D = lo;
+                        checkZero(C); checkParity(C);
+                        checkZero(D); checkParity(D);
+                    }
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+
+            // PSHW
+            case 0x39 -> {
+                int reg = get_byte();
+
+                switch (reg) {
+                    case 0x04 -> {
+                        push_stack(A);
+                        push_stack(B);
+                    }
+                    case 0x05 -> {
+                        push_stack(C);
+                        push_stack(D);
+                    }
+
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+
+            // POPW
+            case 0x3A -> {
+                int reg = get_byte();
+
+                switch (reg) {
+                    case 0x04 -> {
+                        B = pop_stack();
+                        A = pop_stack();
+                        checkZero(A); checkParity(A);
+                        checkZero(B); checkParity(B);
+                    }
+                    case 0x05 -> {
+                        C = pop_stack();
+                        D = pop_stack();
+                        checkZero(C); checkParity(C);
+                        checkZero(D); checkParity(D);
+                    }
+
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+
+            // LDW
+            case 0x3B -> {
+                int regA = get_byte();
+                int regB = get_byte();
+
+                switch (regA) {
+                    case 0x04 -> {
+                        switch (regB) {
+                            case 0x00 -> {
+                                A = RAM.read((A<<8) + B);
+                                checkZero(A); checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read((A<<8) + B);
+                                checkZero(B); checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read((A<<8) + B);
+                                checkZero(C); checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read((A<<8) + B);
+                                checkZero(D); checkParity(D);
+                            }
+
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    case 0x05 -> {
+                        switch (regB) {
+                            case 0x00 -> {
+                                A = RAM.read((C<<8) + D);
+                                checkZero(A); checkParity(A);
+                            }
+                            case 0x01 -> {
+                                B = RAM.read((C<<8) + D);
+                                checkZero(B); checkParity(B);
+                            }
+                            case 0x02 -> {
+                                C = RAM.read((C<<8) + D);
+                                checkZero(C); checkParity(C);
+                            }
+                            case 0x03 -> {
+                                D = RAM.read((C<<8) + D);
+                                checkZero(D); checkParity(D);
+                            }
+
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+
+            // STW
+            case 0x3C -> {
+                int regA = get_byte();
+                int regB = get_byte();
+
+                switch (regA) {
+                    case 0x00 -> {
+                        switch (regB) {
+                            case 0x04 -> {
+                                RAM.write(A, (A<<8) + B);
+                            }
+                            case 0x05 -> {
+                                RAM.write(A, (C<<8) + D);
+                            }
+
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    case 0x01 -> {
+                        switch (regB) {
+                            case 0x04 -> {
+                                RAM.write(B, (A<<8) + B);
+                            }
+                            case 0x05 -> {
+                                RAM.write(B, (C<<8) + D);
+                            }
+
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    case 0x02 -> {
+                        switch (regB) {
+                            case 0x04 -> {
+                                RAM.write(C, (A<<8) + B);
+                            }
+                            case 0x05 -> {
+                                RAM.write(C, (C<<8) + D);
+                            }
+
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    case 0x03 -> {
+                        switch (regB) {
+                            case 0x04 -> {
+                                RAM.write(D, (A<<8) + B);
+                            }
+                            case 0x05 -> {
+                                RAM.write(D, (C<<8) + D);
+                            }
+
+                            default -> throw new RuntimeException("INVALID REGISTER");
+                        }
+                    }
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+
+            // JMPW
+            case 0x3D -> {
+                int reg = get_byte();
+
+                switch (reg) {
+                    case 0x04 -> {
+                        IP = (A<<8) + B;
+                    }
+                    case 0x05 -> {
+                        IP = (C<<8) + D;
+                    }
+
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+
+            // CALW
+            case 0x3E -> {
+                int reg = get_byte();
+                switch (reg) {
+                    case 0x04 -> {
+                        int dest = (A<<8)+B;
+                        // Set return register to the next instruction
+                        R = IP++;
+                        // Set base pointer for Arg reference
+                        BP = SP;
+                        // Get to the called code
+                        IP = dest;
+                    }
+                    case 0x05 -> {
+                        int dest = (C<<8)+D;
+                        // Set return register to the next instruction
+                        R = IP++;
+                        // Set base pointer for Arg reference
+                        BP = SP;
+                        // Get to the called code
+                        IP = dest;
+                    }
+
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+
+            // ADDW
+            case 0x3F -> {
+                int reg = get_byte();
+                int imm = (get_byte() + (get_byte() << 8));
+
+                switch (reg) {
+                    case 0x04 -> {
+                        int temp_16 = (A<<8)+B;
+                        temp_16 += imm;
+                        A = (byte) temp_16>>8;
+                        B = (byte) temp_16;
+                        checkZero(A); checkParity(A); checkCarry(A);
+                        checkZero(B); checkParity(B); checkCarry(B);
+
+                    }
+                    case 0x05 -> {
+                        int temp_16 = (C<<8)+D;
+                        temp_16 += imm;
+                        C = (byte) temp_16>>8;
+                        D = (byte) temp_16;
+                        checkZero(C); checkParity(C); checkCarry(C);
+                        checkZero(D); checkParity(D); checkCarry(D);
+                    }
+
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+
+            // INCW
+            case 0x40 -> {
+                int reg = get_byte();
+
+                switch (reg) {
+                    case 0x04 -> {
+                        int temp_16 = (A<<8)+B;
+                        temp_16++;
+                        A = (byte) temp_16>>8;
+                        B = (byte) temp_16;
+                        checkZero(A); checkParity(A); checkCarry(A);
+                        checkZero(B); checkParity(B); checkCarry(B);
+
+                    }
+                    case 0x05 -> {
+                        int temp_16 = (C<<8)+D;
+                        temp_16++;
+                        C = (byte) temp_16>>8;
+                        D = (byte) temp_16;
+                        checkZero(C); checkParity(C); checkCarry(C);
+                        checkZero(D); checkParity(D); checkCarry(D);
+                    }
+
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
+
+            // DECW
+            case 0x41 -> {
+                int reg = get_byte();
+
+                switch (reg) {
+                    case 0x04 -> {
+                        int temp_16 = (A<<8)+B;
+                        temp_16--;
+                        A = (byte) temp_16>>8;
+                        B = (byte) temp_16;
+                        checkZero(A); checkParity(A); checkNegative(A);
+                        checkZero(B); checkParity(B); checkNegative(B);
+
+                    }
+                    case 0x05 -> {
+                        int temp_16 = (C<<8)+D;
+                        temp_16--;
+                        C = (byte) temp_16>>8;
+                        D = (byte) temp_16;
+                        checkZero(C); checkParity(C); checkNegative(C);
+                        checkZero(D); checkParity(D); checkNegative(D);
+                    }
+
+                    default -> throw new RuntimeException("INVALID REGISTER");
+                }
+            }
         }
     }
 

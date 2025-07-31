@@ -53,6 +53,9 @@ Argument Types:
         0x01 represents B
         0x02 represents C
         0x03 represents D
+    REG16: A combo of 2 8 bit registers to act as a 16 bit register:
+        0x04 represents AB
+        0x05 represents CD
 
 Stack grows downwards
 
@@ -153,3 +156,14 @@ Instructions:
 0x36: IBPR (IMM8)OFFSET (REG8)Destination: Copy data from the BP (Stack Pointer)+OFFSET to Destination [Z, P].
 -OFFSET-----------------------------------------------------------------------------------------------------
 0x37: LDRO (IMM16)Address, (REG8)OFFSET, (REG8)Destination: Copy data from the byte in memory pointed to by Address+(OFFSET's value) to Destination [Z, P].
+-WIDE-------------------------------------------------------------------------------------------------------
+0x38: MOVW (REG16)Destination (IMM16)Address: Copy 16-bit address into wide register [Z, P].
+0x39: PSHW (REG16)Source: Push 16-bit value in wide register onto stack.
+0x3A: POPW (REG16)Destination: Pop 16-bit value from stack into wide register [Z, P].
+0x3B: LDW (REG16)Source (REG8)Destination: Load 8-bit from memory address in wide register Source into Destination [Z, P].
+0x3C: STW (REG8)Source (REG16)Destination: Store 8-bit from Source into memory address pointed to by wide register Destination [Z, P].
+0x3D: JMPW (REG16)Destination: Jump to 16-bit address in wide register Destination.
+0x3E: CALW (REG16)Destination: Call subroutine at 16-bit address in wide register Destination.
+0x3F: ADDW (REG16)Destination (IMM16)Address: Add 16-bit address value to wide register Destination [Z, C, P].
+0x40: INCW (REG16)Destination: Increment wide register Destination by 1 [Z, C, P].
+0x41: DECW (REG16)Destination: Decrement wide register Destination by 1 [Z, N, P].
