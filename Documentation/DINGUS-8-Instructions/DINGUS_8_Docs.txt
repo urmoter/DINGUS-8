@@ -34,15 +34,15 @@ Access up-to 0xFFFF (2^16) in memory
 
  7 6 5 4 3 2 1 0
 +-+-+-+-+-+-+-+-+
-|H|I|T|C|P|N|Z|U|
+|H|G|T|C|E|N|Z|L|
 +-+-+-+-+-+-+-+-+
-	0x0: User Flag, dedicated for the user to modify.
+	0x0: Less, Set by CMP
 	0x1: Zero, set if a register receives a 0x00 value.
 	0x2: Negative, Overflow in Subtraction.
-	0x3: Parity, 1 if odd, 0 if even number of bits.
+	0x3: Equal, Set by CMP
 	0x4: Carry, Overflow in Addition.
 	0x5: Terminal, Active while printing to the Terminal memory address.
-	0x6: Interrupt, (Currently not implemented).
+	0x6: Greater, set by CMP
 	0x7: Halt, set when HLT (0x18) is called, clock will be ignored.
 
 Argument Types:
@@ -69,23 +69,23 @@ Instructions:
 -NOP--------------------------------------------------------------------------------------------------------
 0x00: NOP: Do nothing.
 -MOV--------------------------------------------------------------------------------------------------------
-0x01: MOVA (IMM8)Immediate: Copy Immediate into A [Z, P].
-0x02: MOVB (IMM8)Immediate: Copy Immediate into B [Z, P].
-0x03: MOVC (IMM8)Immediate: Copy Immediate into C [Z, P].
-0x04: MOVD (IMM8)Immediate: Copy Immediate into D [Z, P].
-0x05: CPY (REG)Source, (REG)Destination: Copy Source’s value to Destination [Z, P].
+0x01: MOVA (IMM8)Immediate: Copy Immediate into A [Z].
+0x02: MOVB (IMM8)Immediate: Copy Immediate into B [Z].
+0x03: MOVC (IMM8)Immediate: Copy Immediate into C [Z].
+0x04: MOVD (IMM8)Immediate: Copy Immediate into D [Z].
+0x05: CPY (REG)Source, (REG)Destination: Copy Source’s value to Destination [Z].
 -MEMORY-----------------------------------------------------------------------------------------------------
-0x06: STR (REG8)Source (IMM16)Address: Copy Source's value to the byte in memory pointed to by Address [Z, P].
-0x07: LDR (IMM16)Address (REG8)Destination: Copy data from the byte in memory pointed to by Address to Destination [Z, P].
+0x06: STR (REG8)Source (IMM16)Address: Copy Source's value to the byte in memory pointed to by Address [Z].
+0x07: LDR (IMM16)Address (REG8)Destination: Copy data from the byte in memory pointed to by Address to Destination [Z].
 -MATH-------------------------------------------------------------------------------------------------------
-0x08: ADD (REG8)Destination (REG8)Source: Add Source's value to Destination's value and store in Destination [C, Z, P].
-0x09: SUB (REG8)Destination (REG8)SRC: Subtract Source's value from Destination's value and store in Destination [Z, N, P].
-0x0A: INC (REG8)Destination: Increment Destination's value by 1 [Z, C, P].
-0x0B: DEC (REG8)Destination: Decrement Destination's value by 1 [Z, N, P].
-0x0C: ADC (REG8)Destination (REG8)Source: Add Source's value and the carry bit to Destination's value and store in Destination [Z, C, P].
-0x0D: SBB (REG8)Destination (REG8)Source: Subtract Source's value and the negative bit from Destination's value and store in Destination [Z, N, P].
-0x0E: NEG (REG8)Destination: Make Destination's value Negative (2’s complement) [Z, N, P].
-0x0F: FLP (REG8)Destination: Flip Destination's value value around b(10101010) -> b(01010101) [Z, N, P].
+0x08: ADD (REG8)Destination (REG8)Source: Add Source's value to Destination's value and store in Destination [C, Z].
+0x09: SUB (REG8)Destination (REG8)SRC: Subtract Source's value from Destination's value and store in Destination [Z, N].
+0x0A: INC (REG8)Destination: Increment Destination's value by 1 [Z, C].
+0x0B: DEC (REG8)Destination: Decrement Destination's value by 1 [Z, N].
+0x0C: ADC (REG8)Destination (REG8)Source: Add Source's value and the carry bit to Destination's value and store in Destination [Z, C].
+0x0D: SBB (REG8)Destination (REG8)Source: Subtract Source's value and the negative bit from Destination's value and store in Destination [Z, N].
+0x0E: NEG (REG8)Destination: Make Destination's value Negative (2’s complement) [Z, N].
+0x0F: FLP (REG8)Destination: Flip Destination's value value around b(10101010) -> b(01010101) [Z, N].
 -STACK------------------------------------------------------------------------------------------------------
 0x10: PSHI (IMM8)Immediate:
 	Set the value pointed to by SP to Immediate.
@@ -93,7 +93,7 @@ Instructions:
 0x11: PSHR (REG)Source:
 	Set the value pointed to by SP to the Source's value
 	Decrement the value pointed to by SP.
-0x12: POP (REG)Destination: [Z, P]
+0x12: POP (REG)Destination: [Z]
 	Increment the value pointed to by SP.
 	Set Destination's value to the data at SP.
 	Set the value pointed to by SP to 0x00.
@@ -114,31 +114,32 @@ Instructions:
 	Ignore the clock signal.
 	Quit (If in Emulator).
 	Must reset to undo!
--USER-------------------------------------------------------------------------------------------------------
-0x19: JU: (IMM16)Address: Jump to Address if User Flag (U) is set.
-0x1A: JNU: (IMM16)Address: Jump to Address if User Flag (U) is not set.
+-LESS-------------------------------------------------------------------------------------------------------
+0x19: JL: (IMM16)Address: Jump to Address if Less Flag (L) is set.
+0x1A: JNL: (IMM16)Address: Jump to Address if Less Flag (L) is not set.
 -STATUS-----------------------------------------------------------------------------------------------------
-0x1B: SETU: Set User Flag [U].
-0x1C: CLRU: Clear User Flag [U].
+0x1B: SETL: Set Less Flag [L].
+0x1C: CLRL: Clear Less Flag [L].
 0x1D: SETZ: Set Zero [O].
 0x1E: CLRZ: Clear Zero [O].
 0x1F: SETN: Set Negative [N].
 0x20: CLRN: Clear Negative [N].
-0x21: SETP: Set Parity [P].
-0x22: CLRP: Clear Parity [P].
+0x21: SETE: Set Parity [E].
+0x22: CLRE: Clear Equal [E].
 0x23: SETC: Set Carry [C]
 0x24: CLRC: Clear Carry [C]
 -LOGIC------------------------------------------------------------------------------------------------------
-0x25: AND (REG8)Destination (REG8)Source: Bitwise AND Destination's value and Source's value and store in Destination [Z, P].
-0x26: OR (REG8)Destination (REG8)Source: Bitwise OR Destination's value and Source's value and store in Destination [Z, P].
-0x27: XOR (REG8)Destination (REG8)Source: Bitwise XOR Destination's value and Source's value and store in Destination [Z, P].
-0x28: NOT (REG8)Destination: Invert Destination's value and store in Destination [Z, P].
+0x25: AND (REG8)Destination (REG8)Source: Bitwise AND Destination's value and Source's value and store in Destination [Z].
+0x26: OR (REG8)Destination (REG8)Source: Bitwise OR Destination's value and Source's value and store in Destination [Z].
+0x27: XOR (REG8)Destination (REG8)Source: Bitwise XOR Destination's value and Source's value and store in Destination [Z].
+0x28: NOT (REG8)Destination: Invert Destination's value and store in Destination [Z].
 -EQUAL------------------------------------------------------------------------------------------------------
-0x29: JE (IMM16)Address (REG8)Destination (REG8)Source: Jump to Address if Destination's value and Source's value are equal.
+0x29: JE (IMM16)Address Jump to Address if Equal Flag (E) is set
 0x2A: JNE (IMM16)Address (REG8)Destination (REG8)Source: Jump to Address if Destination's value and Source's value are not equal.
--INEQUALITY-------------------------------------------------------------------------------------------------
-0x2B: JG (IMM16)Address (REG8)Destination (REG8)Source: Jump to Address if Destination's value is greater than Source's value
-0x2C: JL (IMM16)Address (REG8)Destination (REG8)Source: JJump to Address if Destination's value is less than Source's value
+-MISC-------------------------------------------------------------------------------------------------------
+0x11: CLR (REG8)Destination: Set Destination to 0 [Z].
+0x2C: LEA (REG16)Base (IMM16)Offset (REG8)Destination:
+      Load 8-bit from memory at [Base + Offset] into Destination [Z].
 -PRINT------------------------------------------------------------------------------------------------------
 0x2D: PRNI (IMM8)Value: Set 0xFFFD to Value, and set the Terminal flag [T].
 0x2E: PRNR (REG8)Source: Set 0xFFFD to Source's value and set the Terminal flag [T].
@@ -149,21 +150,25 @@ Instructions:
 -NEGATIVE---------------------------------------------------------------------------------------------------
 0x32: JN (IMM16)Address: Jump to Address if Negative Flag (N) is set.
 0x33: JNN (IMM16)Address: Jump to Address if Negative Flag (M) is not set.
--PARITY-----------------------------------------------------------------------------------------------------
-0x34: JP (IMM16)Address: Jump to Address if Parity Flag (P) is set.
-0x35: JNP (IMM16)Address: Jump to Address if Parity Flag (P) is not set.
+-GREATER----------------------------------------------------------------------------------------------------
+0x34: JG (IMM16)Addrelss: Jump to Address if Greater Flag (G) is set.
+0x35: JNGs (IMM16)Address: Jump to Address if Greater Flag (G) is not set.
 -TEMP-------------------------------------------------------------------------------------------------------
-0x36: IBPR (IMM8)OFFSET (REG8)Destination: Copy data from the BP (Stack Pointer)+OFFSET to Destination [Z, P].
+0x36: IBPR (IMM8)OFFSET (REG8)Destination: Copy data from the BP (Stack Pointer)+OFFSET to Destination [Z].
 -OFFSET-----------------------------------------------------------------------------------------------------
-0x37: LDRO (IMM16)Address, (REG8)OFFSET, (REG8)Destination: Copy data from the byte in memory pointed to by Address+(OFFSET's value) to Destination [Z, P].
+0x37: LDRO (IMM16)Address, (REG8)OFFSET, (REG8)Destination: Copy data from the byte in memory pointed to by Address+(OFFSET's value) to Destination [Z].
 -WIDE-------------------------------------------------------------------------------------------------------
-0x38: MOVW (REG16)Destination (IMM16)Address: Copy 16-bit address into wide register [Z, P].
+0x38: MOVW (REG16)Destination (IMM16)Address: Copy 16-bit address into wide register [Z].
 0x39: PSHW (REG16)Source: Push 16-bit value in wide register onto stack.
-0x3A: POPW (REG16)Destination: Pop 16-bit value from stack into wide register [Z, P].
-0x3B: LDW (REG16)Source (REG8)Destination: Load 8-bit from memory address in wide register Source into Destination [Z, P].
-0x3C: STW (REG8)Source (REG16)Destination: Store 8-bit from Source into memory address pointed to by wide register Destination [Z, P].
+0x3A: POPW (REG16)Destination: Pop 16-bit value from stack into wide register [Z].
+0x3B: LDW (REG16)Source (REG8)Destination: Load 8-bit from memory address in wide register Source into Destination [Z].
+0x3C: STW (REG8)Source (REG16)Destination: Store 8-bit from Source into memory address pointed to by wide register Destination [Z].
 0x3D: JMPW (REG16)Destination: Jump to 16-bit address in wide register Destination.
 0x3E: CALW (REG16)Destination: Call subroutine at 16-bit address in wide register Destination.
-0x3F: ADDW (REG16)Destination (IMM16)Address: Add 16-bit address value to wide register Destination [Z, C, P].
-0x40: INCW (REG16)Destination: Increment wide register Destination by 1 [Z, C, P].
-0x41: DECW (REG16)Destination: Decrement wide register Destination by 1 [Z, N, P].
+0x3F: ADDW (REG16)Destination (IMM16)Address: Add 16-bit address value to wide register Destination [Z, C].
+0x40: INCW (REG16)Destination: Increment wide register Destination by 1 [Z, C].
+0x41: DECW (REG16)Destination: Decrement wide register Destination by 1 [Z, N].
+-COMPARE----------------------------------------------------------------------------------------------------
+0x42: CMP (REG8)A (REG8)B: update flags based on how A is related to B [G, E, L].
+0x43: SETG: Set Greater [G]
+0x44: CLRG: Clear Greater [G]
