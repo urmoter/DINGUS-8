@@ -941,57 +941,103 @@ public class Cpu {
             }
             // LEA
             case 0x2C -> {
-                int reg16 = get_byte();
-                int offset = (get_byte() + (get_byte() << 8));
-                int dest = get_byte();
+                int regPair = get_byte();   // 0x04 or 0x05 (wAB, wCD)
+                int regOffset = get_byte(); // 0x00-0x03 (A-D) used as offset
+                int regDest = get_byte();   // 0x00-0x03 (A-D) destination
 
-                switch (reg16) {
-                    case 0x04 -> {
-                        switch (dest) {
-                            case 0x00 -> {
-                                A = RAM.read(((A << 8) + B)+offset);
-                                checkZero(A);
+                switch (regPair) {
+                    case 0x04 -> { // wAB
+                        int base = ((A << 8) + B);
+                        switch (regOffset) {
+                            case 0x00 -> { // offset A
+                                int addr = (base + A) & 0xFFFF;
+                                switch (regDest) {
+                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
+                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
+                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
+                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
+                                    default -> throw new RuntimeException("INVALID REGISTER");
+                                }
                             }
-                            case 0x01 -> {
-                                B = RAM.read(((A << 8) + B)+offset);
-                                checkZero(B);
+                            case 0x01 -> { // offset B
+                                int addr = (base + B) & 0xFFFF;
+                                switch (regDest) {
+                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
+                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
+                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
+                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
+                                    default -> throw new RuntimeException("INVALID REGISTER");
+                                }
                             }
-                            case 0x02 -> {
-                                C = RAM.read(((A << 8) + B)+offset);
-                                checkZero(C);
+                            case 0x02 -> { // offset C
+                                int addr = (base + C) & 0xFFFF;
+                                switch (regDest) {
+                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
+                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
+                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
+                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
+                                    default -> throw new RuntimeException("INVALID REGISTER");
+                                }
                             }
-                            case 0x03 -> {
-                                D = RAM.read(((A << 8) + B)+offset);
-                                checkZero(D);
+                            case 0x03 -> { // offset D
+                                int addr = (base + D) & 0xFFFF;
+                                switch (regDest) {
+                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
+                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
+                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
+                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
+                                    default -> throw new RuntimeException("INVALID REGISTER");
+                                }
                             }
-
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
-
-                    case 0x05 -> {
-                        switch (dest) {
-                            case 0x00 -> {
-                                A = RAM.read(((C << 8) + D)+offset);
-                                checkZero(A);
+                    case 0x05 -> { // wCD
+                        int base = ((C << 8) + D);
+                        switch (regOffset) {
+                            case 0x00 -> { // offset A
+                                int addr = (base + A) & 0xFFFF;
+                                switch (regDest) {
+                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
+                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
+                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
+                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
+                                    default -> throw new RuntimeException("INVALID REGISTER");
+                                }
                             }
-                            case 0x01 -> {
-                                B = RAM.read(((C << 8) + D)+offset);
-                                checkZero(B);
+                            case 0x01 -> { // offset B
+                                int addr = (base + B) & 0xFFFF;
+                                switch (regDest) {
+                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
+                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
+                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
+                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
+                                    default -> throw new RuntimeException("INVALID REGISTER");
+                                }
                             }
-                            case 0x02 -> {
-                                C = RAM.read(((C << 8) + D)+offset);
-                                checkZero(C);
+                            case 0x02 -> { // offset C
+                                int addr = (base + C) & 0xFFFF;
+                                switch (regDest) {
+                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
+                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
+                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
+                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
+                                    default -> throw new RuntimeException("INVALID REGISTER");
+                                }
                             }
-                            case 0x03 -> {
-                                D = RAM.read(((C << 8) + D)+offset);
-                                checkZero(D);
+                            case 0x03 -> { // offset D
+                                int addr = (base + D) & 0xFFFF;
+                                switch (regDest) {
+                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
+                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
+                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
+                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
+                                    default -> throw new RuntimeException("INVALID REGISTER");
+                                }
                             }
-
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
                     }
-
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }

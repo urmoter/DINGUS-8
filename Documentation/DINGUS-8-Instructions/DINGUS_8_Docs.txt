@@ -138,8 +138,8 @@ Instructions:
 0x2A: JNE (IMM16)Address (REG8)Destination (REG8)Source: Jump to Address if Destination's value and Source's value are not equal.
 -MISC-------------------------------------------------------------------------------------------------------
 0x11: CLR (REG8)Destination: Set Destination to 0 [Z].
-0x2C: LEA (REG16)Base (IMM16)Offset (REG8)Destination:
-      Load 8-bit from memory at [Base + Offset] into Destination [Z].
+0x2C: LEA (REG16)Base (REG8)Offset (REG8)Destination:
+      Load 8-bit from memory at [Base + Offset's value] into Destination [Z].
 -PRINT------------------------------------------------------------------------------------------------------
 0x2D: PRNI (IMM8)Value: Set 0xFFFD to Value, and set the Terminal flag [T].
 0x2E: PRNR (REG8)Source: Set 0xFFFD to Source's value and set the Terminal flag [T].
