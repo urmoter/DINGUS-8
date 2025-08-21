@@ -1,3 +1,4 @@
+import javax.sound.midi.SysexMessage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -89,7 +90,7 @@ public class Cpu {
             // System.out.println("Address: " + String.format("0x%04X", IP-1));
             // System.out.println("Byte " + String.format("0x%02X", data) + "; Type " + type);
 
-            if (((S &= 0x20) != 0x00) && IP <= 0xFFFF) {
+            if (((S & 0x20) != 0x00) && IP <= 0xFFFF) {
                 System.out.print((char) RAM.read(0xFFFD));
             }
             // Execute the operation
@@ -524,7 +525,7 @@ public class Cpu {
             case 0x14 -> {
                 int dest = (get_byte() + (get_byte() << 8));
                 // Set return register to the next instruction
-                R = IP++;
+                R = IP;
                 // Set base pointer for Arg reference
                 BP = SP;
                 // Get to the called code
@@ -532,7 +533,7 @@ public class Cpu {
             }
             // RET
             case 0x15 -> {
-                // Set SP back to BP (incase any local variables were made)
+                // Set SP back to BP (in case any local variables were made)
                 SP = BP;
                 // Return to the caller
                 IP = R;
@@ -1818,7 +1819,7 @@ public class Cpu {
     }
 
     private void checkNegative(int data) {
-        if (data > 0xFF) {
+        if ((data & 0x80) != 0) {   // check sign bit of 8-bit value
             S |= 0x04;
         } else {
             S &= 0xFB;
