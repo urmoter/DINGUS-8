@@ -29,6 +29,7 @@ enum OpcodeType {
     OFS,
     WID,
     CMP,
+    WDC,
 }
 
 public class Cpu {
@@ -42,6 +43,16 @@ public class Cpu {
     private int SP = 0xFF;
     private int BP = SP;
     private int R = 0x0000;
+
+    // FLAGS
+    private static final int FLAG_L = 0x01; // Less
+    private static final int FLAG_Z = 0x02; // Zero
+    private static final int FLAG_N = 0x04; // Negative
+    private static final int FLAG_E = 0x08; // Equal
+    private static final int FLAG_C = 0x10; // Carry
+    private static final int FLAG_P = 0x20; // Print enable
+    private static final int FLAG_G = 0x40; // Greater
+    private static final int FLAG_H = 0x80; // Halt/End
 
     public Cpu(String bin_file) {
         // Declare the transfer variable
@@ -90,7 +101,7 @@ public class Cpu {
             // System.out.println("Address: " + String.format("0x%04X", IP-1));
             // System.out.println("Byte " + String.format("0x%02X", data) + "; Type " + type);
 
-            if (((S & 0x20) != 0x00) && IP <= 0xFFFF) {
+            if (((S & FLAG_P) != 0x00) && IP <= 0xFFFF) {
                 System.out.print((char) RAM.read(0xFFFD));
             }
             // Execute the operation
@@ -120,6 +131,7 @@ public class Cpu {
             case OFS -> exec_OFS();
             case WID -> exec_WID(data);
             case CMP -> exec_CMP(data);
+            case WDC -> exec_WDC();
         }
     }
 
@@ -162,6 +174,7 @@ public class Cpu {
             case 0x37 -> OpcodeType.OFS;
             case 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40, 0x41 -> OpcodeType.WID;
             case 0x42, 0x43, 0x44 -> OpcodeType.CMP;
+            case 0x45 -> OpcodeType.WDC;
             default -> throw new RuntimeException("INVALID OPCODE " + String.format("0x%02X", opcode) + "!");
         };
     }
@@ -541,14 +554,14 @@ public class Cpu {
             // JZ
             case 0x16 -> {
                 int addr = (get_byte() + (get_byte() << 8));
-                if ((S & 0x02) != 0x00) {
+                if ((S & FLAG_Z) != 0x00) {
                     IP = addr;
                 }
             }
             // JNZ
             case 0x17 -> {
                 int addr = (get_byte() + (get_byte() << 8));
-                if ((S & 0x02) == 0x00) {
+                if ((S & FLAG_Z) == 0x00) {
                     IP = addr;
                 }
             }
@@ -566,6 +579,7 @@ public class Cpu {
         System.out.println("@IP: " + String.format("0x%04X", (IP - 1)));
         System.out.println("%SP: " + String.format("0x%02X", SP));
         System.out.println("%BP: " + String.format("0x%02X", BP));
+        DEBUG_PRINT_STACK_WITH_POINTERS(SP,BP);
     }
 
     private void exec_LSS(int opcode) {
@@ -573,14 +587,14 @@ public class Cpu {
             // JL
             case 0x19 -> {
                 int addr = (get_byte() + (get_byte() << 8));
-                if ((S & 0x01) != 0x00) {
+                if ((S & FLAG_L) != 0x00) {
                     IP = addr;
                 }
             }
             // JNL
             case 0x1A -> {
                 int addr = (get_byte() + (get_byte() << 8));
-                if ((S & 0x01) == 0x00) {
+                if ((S & FLAG_L) == 0x00) {
                     IP = addr;
                 }
             }
@@ -590,25 +604,25 @@ public class Cpu {
     private void exec_STT(int opcode) {
         switch (opcode) {
             // SETL
-            case 0x1B -> S |= 0x01;
+            case 0x1B -> S |= FLAG_L;
             // CLRL
-            case 0x1C -> S &= 0xFE;
+            case 0x1C -> S &= ~FLAG_L;
             // SETZ
-            case 0x1D -> S |= 0x02;
+            case 0x1D -> S |= FLAG_Z;
             // CLRZ
-            case 0x1E -> S &= 0xFD;
+            case 0x1E -> S &= ~FLAG_Z;
             // SETN
-            case 0x1F -> S |= 0x04;
+            case 0x1F -> S |= FLAG_N;
             // CLRN
-            case 0x20 -> S &= 0xFB;
+            case 0x20 -> S &= ~FLAG_N;
             // SETG
-            case 0x21 -> S |= 0x08;
+            case 0x21 -> S |= FLAG_G;
             // CLRG
-            case 0x22 -> S &= 0xF7;
+            case 0x22 -> S &= ~FLAG_G;
             // SETC
-            case 0x23 -> S |= 0x10;
+            case 0x23 -> S |= FLAG_C;
             // CLRC
-            case 0x24 -> S &= 0xEF;
+            case 0x24 -> S &= ~FLAG_C;
         }
     }
 
@@ -899,14 +913,14 @@ public class Cpu {
             // JE
             case 0x29 -> {
                 int addr = (get_byte() + (get_byte() << 8));
-                if ((S & 0x08) != 0x00) {
+                if ((S & FLAG_E) != 0x00) {
                     IP = addr;
                 }
             }
             // JNE
             case 0x2A -> {
                 int addr = (get_byte() + (get_byte() << 8));
-                if ((S & 0x08) == 0x00) {
+                if ((S & FLAG_E) == 0x00) {
                     IP = addr;
                 }
             }
@@ -1085,14 +1099,14 @@ public class Cpu {
             // JC
             case 0x30 -> {
                 int addr = (get_byte() + (get_byte() << 8));
-                if ((S & 0x10) != 0x00) {
+                if ((S & FLAG_C) != 0x00) {
                     IP = addr;
                 }
             }
             // JNC
             case 0x31 -> {
                 int addr = (get_byte() + (get_byte() << 8));
-                if ((S & 0x10) == 0x00) {
+                if ((S & FLAG_C) == 0x00) {
                     IP = addr;
                 }
             }
@@ -1104,14 +1118,14 @@ public class Cpu {
             // JN
             case 0x32 -> {
                 int addr = (get_byte() + (get_byte() << 8));
-                if ((S & 0x04) != 0x00) {
+                if ((S & FLAG_N) != 0x00) {
                     IP = addr;
                 }
             }
             // JNN
             case 0x33 -> {
                 int addr = (get_byte() + (get_byte() << 8));
-                if ((S & 0x04) == 0x00) {
+                if ((S & FLAG_N) == 0x00) {
                     IP = addr;
                 }
             }
@@ -1123,14 +1137,14 @@ public class Cpu {
             // JG
             case 0x34 -> {
                 int addr = (get_byte() + (get_byte() << 8));
-                if ((S & 0x40) != 0x00) {
+                if ((S & FLAG_G) != 0x00) {
                     IP = addr;
                 }
             }
             // JNG
             case 0x35 -> {
                 int addr = (get_byte() + (get_byte() << 8));
-                if ((S & 0x40) == 0x00) {
+                if ((S & FLAG_G) == 0x00) {
                     IP = addr;
                 }
             }
@@ -1143,9 +1157,9 @@ public class Cpu {
         int DEST = get_byte();
         switch (DEST) {
             case 0x00 -> {A = RAM.read(BP+OFFSET); checkZero(A); }
-            case 0x01 -> {B = RAM.read(BP+OFFSET); checkZero(A); }
-            case 0x02 -> {C = RAM.read(BP+OFFSET); checkZero(A); }
-            case 0x03 -> {D = RAM.read(BP+OFFSET); checkZero(A); }
+            case 0x01 -> {B = RAM.read(BP+OFFSET); checkZero(B); }
+            case 0x02 -> {C = RAM.read(BP+OFFSET); checkZero(C); }
+            case 0x03 -> {D = RAM.read(BP+OFFSET); checkZero(D); }
         }
     }
 
@@ -1592,17 +1606,17 @@ public class Cpu {
 
                             case 0x01 -> {
                                 if (A == B) {
-                                    S |= 0x08; // E
-                                    S &= 0xFE; // L
-                                    S &= 0xBF; // G
+                                    S |= FLAG_E; // E
+                                    S &= ~FLAG_L; // L
+                                    S &= ~FLAG_G; // G
                                 } else if (A < B) {
-                                    S &= 0xF7; // E
-                                    S |= 0x01; // L
-                                    S &= 0xBF; // G
+                                    S &= ~FLAG_E; // E
+                                    S |= FLAG_L; // L
+                                    S &= ~FLAG_G; // G
                                 } else {
-                                    S &= 0xF7; // E
-                                    S &= 0xFE; // L
-                                    S |= 0x40; // G
+                                    S &= ~FLAG_E; // E
+                                    S &= ~FLAG_L; // L
+                                    S |= FLAG_G; // G
                                 }
                             }
                             case 0x02 -> {
@@ -1810,11 +1824,31 @@ public class Cpu {
         }
     }
 
+    private void exec_WDC() {
+        int OFFSET = get_byte();
+        int DEST = get_byte();
+        switch (DEST) {
+            case 0x04 -> {
+                A = RAM.read(BP+OFFSET+1);
+                checkZero(A);
+                B = RAM.read(BP+OFFSET);
+                checkZero(B);
+            }
+            case 0x05 -> {
+                C = RAM.read(BP+OFFSET+1);
+                checkZero(C);
+                D = RAM.read(BP+OFFSET);
+                checkZero(D);
+            }
+            default -> throw new RuntimeException("INVALID REGISTER");
+        }
+    }
+
     private void checkZero(int data) {
         if (data == 0x00) {
-            S |= 0x02;
+            S |= FLAG_Z;
         } else {
-            S &= 0xFD;
+            S &= ~FLAG_Z;
         }
     }
 
@@ -1828,11 +1862,12 @@ public class Cpu {
 
     private void checkCarry(int data) {
         if (data > 0xFF) {
-            S |= 0x10;
+            S |= FLAG_C;
         } else {
-            S &= 0xEF;
+            S &= ~FLAG_C;
         }
     }
+
     private int flip_byte(byte data) {
         int intSize = 8;
         byte y = 0;
@@ -1849,11 +1884,11 @@ public class Cpu {
     }
 
     private void startPrint() {
-        S|= 0x20;
+        S |= FLAG_P;
     }
 
     private void stopPrint() {
-        S &= 0xDF;
+        S &= ~FLAG_P;
     }
 
     private int pop_stack() {
@@ -1861,6 +1896,14 @@ public class Cpu {
         int data = RAM.read(SP);
         RAM.write(0x00, SP);
         return data;
+    }
+
+    private void DEBUG_PRINT_STACK_WITH_POINTERS(int SP, int BP) {
+        for (int i = 0xFF; i >= SP; i--) {
+            System.out.println("+----------+");
+            System.out.println("+---" + String.format("0x%02X", RAM.read(i)) + "---+ <-- SP+" + (i-SP) + ((BP==i)?" & BP":""));
+        }
+        System.out.println("+----------+");
     }
 
 }
