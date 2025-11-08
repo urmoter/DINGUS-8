@@ -42,7 +42,6 @@ public class Cpu {
     private int IP;
     private int SP = 0xFF;
     private int BP = SP;
-    private int R = 0x0000;
 
     // FLAGS
     private static final int FLAG_L = 0x01; // Less
@@ -89,7 +88,7 @@ public class Cpu {
         // Run this as long as:
         //  1: We haven't wrapped around to 0x0000
         //  2: The exit flag isn't set
-        while (((S & 0x80) == 0) && (IP <= 0xFFFF)) {
+        while (((S & FLAG_H) == 0) && (IP <= 0xFFFF)) {
             // Get a byte from memory
             data = get_byte();
             // Get what type of operation the byte is
@@ -100,6 +99,8 @@ public class Cpu {
             // DEBUG
             // System.out.println("Address: " + String.format("0x%04X", IP-1));
             // System.out.println("Byte " + String.format("0x%02X", data) + "; Type " + type);
+            // DEBUG_PRINT_STACK_WITH_POINTERS(SP, BP);
+            // System.out.println("");
 
             if (((S & FLAG_P) != 0x00) && IP <= 0xFFFF) {
                 System.out.print((char) RAM.read(0xFFFD));
@@ -537,8 +538,10 @@ public class Cpu {
             // CALL
             case 0x14 -> {
                 int dest = (get_byte() + (get_byte() << 8));
-                // Set return register to the next instruction
-                R = IP;
+                // Save next register
+                push_stack((byte) (IP>>8));
+                push_stack((byte) IP);
+                push_stack(BP);
                 // Set base pointer for Arg reference
                 BP = SP;
                 // Get to the called code
@@ -548,8 +551,10 @@ public class Cpu {
             case 0x15 -> {
                 // Set SP back to BP (in case any local variables were made)
                 SP = BP;
-                // Return to the caller
-                IP = R;
+                BP = pop_stack();
+                int LSB = pop_stack();
+                int MSB = pop_stack();
+                IP = (MSB<<8) + LSB;
             }
             // JZ
             case 0x16 -> {
@@ -640,17 +645,17 @@ public class Cpu {
                             case 0x01 -> {
                                 A &= B;
                                 checkZero(A);
-                                
+
                             }
                             case 0x02 -> {
                                 A &= C;
                                 checkZero(A);
-                                
+
                             }
                             case 0x03 -> {
                                 A &= D;
                                 checkZero(A);
-                                
+
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -659,16 +664,16 @@ public class Cpu {
                         switch (regB) {
                             case 0x00 -> {
                                 B &= A;
-                                checkZero(B); 
+                                checkZero(B);
                             }
                             case 0x01 -> {checkZero(B); }
                             case 0x02 -> {
                                 B &= C;
-                                checkZero(B); 
+                                checkZero(B);
                             }
                             case 0x03 -> {
                                 B &= D;
-                                checkZero(B); 
+                                checkZero(B);
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -677,16 +682,16 @@ public class Cpu {
                         switch (regB) {
                             case 0x00 -> {
                                 C &= A;
-                                checkZero(C); 
+                                checkZero(C);
                             }
                             case 0x01 -> {
                                 C &= B;
-                                checkZero(C); 
+                                checkZero(C);
                             }
                             case 0x02 -> {checkZero(C); }
                             case 0x03 -> {
                                 C &= D;
-                                checkZero(C); 
+                                checkZero(C);
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -695,15 +700,15 @@ public class Cpu {
                         switch (regB) {
                             case 0x00 -> {
                                 D &= A;
-                                checkZero(D); 
+                                checkZero(D);
                             }
                             case 0x01 -> {
                                 D &= B;
-                                checkZero(D); 
+                                checkZero(D);
                             }
                             case 0x02 -> {
                                 D &= C;
-                                checkZero(D); 
+                                checkZero(D);
                             }
                             case 0x03 -> {checkZero(D); }
                             default -> throw new RuntimeException("INVALID REGISTER");
@@ -723,17 +728,17 @@ public class Cpu {
                             case 0x01 -> {
                                 A |= B;
                                 checkZero(A);
-                                
+
                             }
                             case 0x02 -> {
                                 A |= C;
                                 checkZero(A);
-                                
+
                             }
                             case 0x03 -> {
                                 A |= D;
                                 checkZero(A);
-                                
+
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -743,18 +748,18 @@ public class Cpu {
                             case 0x00 -> {
                                 B |= A;
                                 checkZero(B);
-                                
+
                             }
                             case 0x01 -> {checkZero(B); }
                             case 0x02 -> {
                                 B |= C;
                                 checkZero(B);
-                                
+
                             }
                             case 0x03 -> {
                                 B |= D;
                                 checkZero(B);
-                                
+
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -764,18 +769,18 @@ public class Cpu {
                             case 0x00 -> {
                                 C |= A;
                                 checkZero(C);
-                                
+
                             }
                             case 0x01 -> {
                                 C |= B;
                                 checkZero(C);
-                                
+
                             }
                             case 0x02 -> {checkZero(C); }
                             case 0x03 -> {
                                 C |= D;
                                 checkZero(C);
-                                
+
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -785,17 +790,17 @@ public class Cpu {
                             case 0x00 -> {
                                 D |= A;
                                 checkZero(D);
-                                
+
                             }
                             case 0x01 -> {
                                 D |= B;
                                 checkZero(D);
-                                
+
                             }
                             case 0x02 -> {
                                 D |= C;
                                 checkZero(D);
-                                
+
                             }
                             case 0x03 -> {checkZero(D); }
                             default -> throw new RuntimeException("INVALID REGISTER");
@@ -815,17 +820,17 @@ public class Cpu {
                             case 0x01 -> {
                                 A ^= B;
                                 checkZero(A);
-                                
+
                             }
                             case 0x02 -> {
                                 A ^= C;
                                 checkZero(A);
-                                
+
                             }
                             case 0x03 -> {
                                 A ^= D;
                                 checkZero(A);
-                                
+
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -835,18 +840,18 @@ public class Cpu {
                             case 0x00 -> {
                                 B ^= A;
                                 checkZero(B);
-                                
+
                             }
                             case 0x01 -> {checkZero(B); }
                             case 0x02 -> {
                                 B ^= C;
                                 checkZero(B);
-                                
+
                             }
                             case 0x03 -> {
                                 B ^= D;
                                 checkZero(B);
-                                
+
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -856,18 +861,18 @@ public class Cpu {
                             case 0x00 -> {
                                 C ^= A;
                                 checkZero(C);
-                                
+
                             }
                             case 0x01 -> {
                                 C ^= B;
                                 checkZero(C);
-                                
+
                             }
                             case 0x02 -> {checkZero(C); }
                             case 0x03 -> {
                                 C ^= D;
                                 checkZero(C);
-                                
+
                             }
                             default -> throw new RuntimeException("INVALID REGISTER");
                         }
@@ -877,17 +882,17 @@ public class Cpu {
                             case 0x00 -> {
                                 D ^= A;
                                 checkZero(D);
-                                
+
                             }
                             case 0x01 -> {
                                 D ^= B;
                                 checkZero(D);
-                                
+
                             }
                             case 0x02 -> {
                                 D ^= C;
                                 checkZero(D);
-                                
+
                             }
                             case 0x03 -> {checkZero(D); }
                             default -> throw new RuntimeException("INVALID REGISTER");
@@ -1174,25 +1179,25 @@ public class Cpu {
                     case 0x00 -> {
                         A = RAM.read(addr+A);
                         checkZero(A);
-                        
+
                         checkCarry(A);
                     }
                     case 0x01 -> {
                         A = RAM.read(addr+B);
                         checkZero(A);
-                        
+
                         checkCarry(A);
                     }
                     case 0x02 -> {
                         A = RAM.read(addr+C);
                         checkZero(A);
-                        
+
                         checkCarry(A);
                     }
                     case 0x03 -> {
                         A = RAM.read(addr+D);
                         checkZero(A);
-                        
+
                         checkCarry(A);
                     }
                     default -> throw new RuntimeException("INVALID REGISTER");
@@ -1203,25 +1208,25 @@ public class Cpu {
                     case 0x00 -> {
                         B = RAM.read(addr+A);
                         checkZero(B);
-                        
+
                         checkCarry(B);
                     }
                     case 0x01 -> {
                         B = RAM.read(addr+B);
                         checkZero(B);
-                        
+
                         checkCarry(B);
                     }
                     case 0x02 -> {
                         B = RAM.read(addr+C);
                         checkZero(B);
-                        
+
                         checkCarry(B);
                     }
                     case 0x03 -> {
                         B = RAM.read(addr+D);
                         checkZero(B);
-                        
+
                         checkCarry(B);
                     }
                     default -> throw new RuntimeException("INVALID REGISTER");
@@ -1232,25 +1237,25 @@ public class Cpu {
                     case 0x00 -> {
                         C = RAM.read(addr+A);
                         checkZero(C);
-                        
+
                         checkCarry(C);
                     }
                     case 0x01 -> {
                         C = RAM.read(addr+B);
                         checkZero(C);
-                        
+
                         checkCarry(C);
                     }
                     case 0x02 -> {
                         C = RAM.read(addr+C);
                         checkZero(C);
-                        
+
                         checkCarry(C);
                     }
                     case 0x03 -> {
                         C = RAM.read(addr+D);
                         checkZero(C);
-                        
+
                         checkCarry(C);
                     }
                     default -> throw new RuntimeException("INVALID REGISTER");
@@ -1261,25 +1266,25 @@ public class Cpu {
                     case 0x00 -> {
                         D = RAM.read(addr+A);
                         checkZero(D);
-                        
+
                         checkCarry(D);
                     }
                     case 0x01 -> {
                         D = RAM.read(addr+B);
                         checkZero(D);
-                        
+
                         checkCarry(D);
                     }
                     case 0x02 -> {
                         D = RAM.read(addr+C);
                         checkZero(D);
-                        
+
                         checkCarry(D);
                     }
                     case 0x03 -> {
                         D = RAM.read(addr+D);
                         checkZero(D);
-                        
+
                         checkCarry(D);
                     }
                     default -> throw new RuntimeException("INVALID REGISTER");
@@ -1300,13 +1305,13 @@ public class Cpu {
                 switch (reg) {
                     case 0x04 -> {
                         A = hi; B = lo;
-                        checkZero(A); 
-                        checkZero(B); 
+                        checkZero(A);
+                        checkZero(B);
                     }
                     case 0x05 -> {
                         C = hi; D = lo;
-                        checkZero(C); 
-                        checkZero(D); 
+                        checkZero(C);
+                        checkZero(D);
                     }
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
@@ -1338,14 +1343,14 @@ public class Cpu {
                     case 0x04 -> {
                         B = pop_stack();
                         A = pop_stack();
-                        checkZero(A); 
-                        checkZero(B); 
+                        checkZero(A);
+                        checkZero(B);
                     }
                     case 0x05 -> {
                         C = pop_stack();
                         D = pop_stack();
-                        checkZero(C); 
-                        checkZero(D); 
+                        checkZero(C);
+                        checkZero(D);
                     }
 
                     default -> throw new RuntimeException("INVALID REGISTER");
@@ -1362,19 +1367,19 @@ public class Cpu {
                         switch (regB) {
                             case 0x00 -> {
                                 A = RAM.read((A<<8) + B);
-                                checkZero(A); 
+                                checkZero(A);
                             }
                             case 0x01 -> {
                                 B = RAM.read((A<<8) + B);
-                                checkZero(B); 
+                                checkZero(B);
                             }
                             case 0x02 -> {
                                 C = RAM.read((A<<8) + B);
-                                checkZero(C); 
+                                checkZero(C);
                             }
                             case 0x03 -> {
                                 D = RAM.read((A<<8) + B);
-                                checkZero(D); 
+                                checkZero(D);
                             }
 
                             default -> throw new RuntimeException("INVALID REGISTER");
@@ -1384,19 +1389,19 @@ public class Cpu {
                         switch (regB) {
                             case 0x00 -> {
                                 A = RAM.read((C<<8) + D);
-                                checkZero(A); 
+                                checkZero(A);
                             }
                             case 0x01 -> {
                                 B = RAM.read((C<<8) + D);
-                                checkZero(B); 
+                                checkZero(B);
                             }
                             case 0x02 -> {
                                 C = RAM.read((C<<8) + D);
-                                checkZero(C); 
+                                checkZero(C);
                             }
                             case 0x03 -> {
                                 D = RAM.read((C<<8) + D);
-                                checkZero(D); 
+                                checkZero(D);
                             }
 
                             default -> throw new RuntimeException("INVALID REGISTER");
@@ -1487,8 +1492,10 @@ public class Cpu {
                 switch (reg) {
                     case 0x04 -> {
                         int dest = (A<<8)+B;
-                        // Set return register to the next instruction
-                        R = IP++;
+                        // Push IP and BP
+                        push_stack((byte) (IP>>8));
+                        push_stack((byte) IP);
+                        push_stack(BP);
                         // Set base pointer for Arg reference
                         BP = SP;
                         // Get to the called code
@@ -1496,8 +1503,10 @@ public class Cpu {
                     }
                     case 0x05 -> {
                         int dest = (C<<8)+D;
-                        // Set return register to the next instruction
-                        R = IP++;
+                        // Push IP and BP
+                        push_stack((byte) (IP>>8));
+                        push_stack((byte) IP);
+                        push_stack(BP);
                         // Set base pointer for Arg reference
                         BP = SP;
                         // Get to the called code
@@ -1899,10 +1908,12 @@ public class Cpu {
     }
 
     private void DEBUG_PRINT_STACK_WITH_POINTERS(int SP, int BP) {
-        for (int i = 0xFF; i >= SP; i--) {
+        for (int i = 0xFF; i > SP; i--) {
             System.out.println("+----------+");
             System.out.println("+---" + String.format("0x%02X", RAM.read(i)) + "---+ <-- SP+" + (i-SP) + ((BP==i)?" & BP":""));
         }
+        System.out.println("+----------+");
+        System.out.println("+---NULL---+ <-- SP+0" + ((BP==SP)?" & BP":""));
         System.out.println("+----------+");
     }
 
