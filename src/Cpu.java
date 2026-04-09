@@ -1,12 +1,20 @@
-import javax.sound.midi.SysexMessage;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-
 // Merry Christmas, or whatever it is, most of these comments are a retrospective of my sleep-deprived code from 2 A.M.
 // I am scared.
 
+/*
+    And now, on 2/23/26, it's time to maybe, just maybe, finalize how call works?
+    Probably not...
+*/
+
+// 4/9/26, it's over..?
 
 enum OpcodeType {
     NOP,
@@ -53,7 +61,95 @@ public class Cpu {
     private static final int FLAG_G = 0x40; // Greater
     private static final int FLAG_H = 0x80; // Halt/End
 
-    public Cpu(String bin_file) {
+    private volatile boolean running = false; // volatile ensures thread visibility
+    public void setRunning(boolean running) {this.running = running;}
+    public boolean isRunning() {return this.running;}
+    public boolean isHalted() {return ((this.S & 0x80) != 0);}
+
+    private java.util.function.Consumer<String> outputConsumer = System.out::print;
+
+    public void setOutputConsumer(java.util.function.Consumer<String> consumer) {
+        this.outputConsumer = consumer;
+    }
+
+    private final javafx.collections.ObservableList<String> registerStrings =
+            javafx.collections.FXCollections.observableArrayList();
+
+    private final javafx.beans.property.SimpleStringProperty currentInstructionWithArgs =
+            new javafx.beans.property.SimpleStringProperty("");
+
+    public javafx.beans.property.StringProperty currentInstructionWithArgsProperty() {
+        return currentInstructionWithArgs;
+    }
+
+    private final javafx.collections.ObservableList<String> stackViewItems =
+            javafx.collections.FXCollections.observableArrayList();
+
+    public javafx.collections.ObservableList<String> getStackViewItems() {
+        return stackViewItems;
+    }
+
+    public void updateStackView() {
+        Platform.runLater(() -> {
+            stackViewItems.clear();
+            int sp = SP;
+            int bp = BP;
+
+            int start = Math.max(0, sp - 8);
+            int end = Math.min(0xFF, sp + 7);
+
+            for (int addr = end; addr >= start; addr--) {
+                int value = RAM.read(addr);
+                String entry = String.format("0x%02X: 0x%02X", addr, value);
+                entry += (addr == sp) ? " <- SP" : "";
+                entry += (addr == bp) ? " <- BP" : "";
+                stackViewItems.add(entry);
+            }
+        });
+    }
+
+    public javafx.collections.ObservableList<String> getRegisterStrings() {
+        updateRegisterStrings();
+        return registerStrings;
+    }
+
+    private void updateRegisterStrings() {
+        // Update the ObservableList with all 8 registers
+        Platform.runLater(() -> {
+            registerStrings.setAll(
+                    String.format("A: 0x%02X", A),
+                    String.format("B: 0x%02X", B),
+                    String.format("C: 0x%02X", C),
+                    String.format("D: 0x%02X", D),
+                    String.format("IP: 0x%04X", IP),
+                    String.format("SP: 0x%02X", SP),
+                    String.format("BP: 0x%02X", BP)
+            );
+        });
+    }
+
+    // Call this inside step()
+    public void flushRegisters() {
+        updateRegisterStrings();
+    }
+
+    private final javafx.beans.property.StringProperty[] flagProperties =
+            new javafx.beans.property.StringProperty[8];
+    public javafx.beans.property.StringProperty getFlagProperty(int index) {
+        return flagProperties[index];
+    }
+    public void updateFlagsView() {
+        flagProperties[0].set(((S & FLAG_L) != 0) ? "1" : "0");
+        flagProperties[1].set(((S & FLAG_Z) != 0) ? "1" : "0");
+        flagProperties[2].set(((S & FLAG_N) != 0) ? "1" : "0");
+        flagProperties[3].set(((S & FLAG_E) != 0) ? "1" : "0");
+        flagProperties[4].set(((S & FLAG_C) != 0) ? "1" : "0");
+        flagProperties[5].set(((S & FLAG_P) != 0) ? "1" : "0");
+        flagProperties[6].set(((S & FLAG_G) != 0) ? "1" : "0");
+        flagProperties[7].set(((S & FLAG_H) != 0) ? "1" : "0");
+    }
+
+    private void loadBinary(String bin_file) {
         // Declare the transfer variable
         byte data;
         // Attempt to open the provided Simulated Ram Binary File
@@ -67,47 +163,95 @@ public class Cpu {
             while ((data = (byte) stream.read()) != -1) {
                 RAM.write(data, i++);
             }
-        // How did this even fucking happen???
+            // How did this even fucking happen???
         } catch (IOException error) {
             System.out.println("Uh Oh! We had an issue reading the binary file!");
             throw new RuntimeException(error);
+        }
+    }
+
+    public Cpu(String bin_file) {
+        loadBinary(bin_file);
+        for (int i = 0; i < 8; i++) {
+            flagProperties[i] = new javafx.beans.property.SimpleStringProperty("0");
         }
         // Let's start this shit!
         IP = get_start_address();
     }
 
-    public void start() {
-        // set the holder for data read from memory
-        int data;
-        /*
-          set the type variable, to hold what type
-          of operation the data value is
-        */
-        OpcodeType type;
+    public void step() {
+        if ((S & FLAG_H) != 0 || IP > 0xFFFF) return;
+        String instrWithArgs = getCurrentInstruction(); // format args correctly
 
-        // Run this as long as:
-        //  1: We haven't wrapped around to 0x0000
-        //  2: The exit flag isn't set
-        while (((S & FLAG_H) == 0) && (IP <= 0xFFFF)) {
-            // Get a byte from memory
-            data = get_byte();
-            // Get what type of operation the byte is
-            type = determine_opcode_type(data);
-            // If the terminal flag is set, and we haven't wrapped around,
-            // print the character in the terminal address.
+        // Update GUI
+        currentInstructionWithArgs.set(instrWithArgs);
 
-            // DEBUG
-            // System.out.println("Address: " + String.format("0x%04X", IP-1));
-            // System.out.println("Byte " + String.format("0x%02X", data) + "; Type " + type);
-            // DEBUG_PRINT_STACK_WITH_POINTERS(SP, BP);
-            // System.out.println("");
+        // Now actually execute
+        int opcode = get_byte();
+        type_exec(opcode, determine_opcode_type(opcode));
+        flushRegisters();
+        updateStackView();
+        updateFlagsView();
 
-            if (((S & FLAG_P) != 0x00) && IP <= 0xFFFF) {
-                System.out.print((char) RAM.read(0xFFFD));
-            }
-            // Execute the operation
-            type_exec(data, type);
+        // handle terminal output live
+        if ((S & FLAG_P) != 0) {
+            int value = RAM.read(0xFFFD);
+            outputConsumer.accept(Character.toString((char)value));
         }
+
+
+    }
+
+    public String getCurrentInstruction() {
+        int opcode = peek_byte(0);
+        String name = getInstructionName(opcode);
+
+        return switch (opcode) {
+            case 0x00, 0x15, 0x18, 0x2F -> name; // single-byte no-arg
+
+            case 0x01, 0x02, 0x03, 0x04 -> String.format("%s $%02X", name, peek_byte(1)); // MOV immediate
+
+            case 0x0A, 0x0B, 0x0E, 0x0F -> String.format("%s %%%s", name, regName(peek_byte(1))); // INC/DEC/NEG/FLP
+
+            case 0x05, 0x0C, 0x0D, 0x25, 0x26, 0x27 ->
+                    String.format("%s %%%s %%%s", name, regName(peek_byte(1)), regName(peek_byte(2))); // REG8 -> REG8
+
+            case 0x10 -> String.format("%s $%02X", name, peek_byte(1)); // PSHI
+            case 0x11, 0x12 -> String.format("%s %%%s", name, regName(peek_byte(1))); // PSHR / POP
+
+            case 0x06 -> String.format("%s %%%s @%04X", name, regName(peek_byte(1)), peek_word(2)); // STR
+            case 0x07 -> String.format("%s @%04X %%%s", name, peek_word(1), regName(peek_byte(3))); // LDR
+
+            case 0x13, 0x14, 0x16, 0x17, 0x19, 0x1A, 0x29, 0x2A, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35 ->
+                    String.format("%s @%04X", name, peek_word(1)); // jumps
+
+            case 0x2C -> String.format("%s %%%s %%%s %%%s", name, regName(peek_byte(1)), regName(peek_byte(2)), regName(peek_byte(3))); // LEA
+
+            case 0x2E -> String.format("%s %%%s", name, regName(peek_byte(1))); // PRNR
+
+            case 0x37 -> String.format("%s @%04X %%%s %%%s", name, peek_word(1), regName(peek_byte(3)), regName(peek_byte(4))); // LDRO
+
+            case 0x38, 0x3B, 0x3C, 0x3F -> String.format("%s %%%s @%04X", name, regName(peek_byte(1)), peek_word(2)); // wide ops
+
+            case 0x40, 0x41 -> String.format("%s %%%s", name, regName(peek_byte(1))); // INCW / DECW
+
+            case 0x42 -> String.format("%s %%%s %%%s", name, regName(peek_byte(1)), regName(peek_byte(2))); // CMP
+
+            case 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23, 0x24, 0x43, 0x44 -> name; // flags
+
+            default -> String.format("0x%02X ???", opcode); // fallback
+        };
+    }
+
+    // Helper for REG8
+    private String regName(int reg) {
+        return switch (reg) {
+            case 0x00 -> "A";
+            case 0x01 -> "B";
+            case 0x02 -> "C";
+            case 0x03 -> "D";
+            default -> "UNK";
+        };
     }
 
     private void type_exec(int data, OpcodeType type) {
@@ -141,8 +285,8 @@ public class Cpu {
         int LSB = RAM.read(0xFFFE);
         int MSB = RAM.read(0xFFFF);
         // Debug for when shit hits the fan
-        // System.out.printf("Start: 0x%04X%n", (MSB << 8) + LSB);
-        return (MSB << 8) + LSB;
+        // System.out.printf("Start: 0x%04X%n", (MSB << 8) | LSB);
+        return (MSB << 8) | LSB;
     }
 
     private int get_byte() {
@@ -538,23 +682,23 @@ public class Cpu {
             // CALL
             case 0x14 -> {
                 int dest = (get_byte() + (get_byte() << 8));
-                // Save next register
-                push_stack((byte) (IP>>8));
+                // Save next instruction
+                push_stack((byte) (IP>> 8));
                 push_stack((byte) IP);
                 push_stack(BP);
                 // Set base pointer for Arg reference
-                BP = SP;
+                BP = (SP+1);
                 // Get to the called code
                 IP = dest;
             }
             // RET
             case 0x15 -> {
                 // Set SP back to BP (in case any local variables were made)
-                SP = BP;
+                SP = (BP-1);
                 BP = pop_stack();
                 int LSB = pop_stack();
                 int MSB = pop_stack();
-                IP = (MSB<<8) + LSB;
+                IP = (MSB<< 8) | LSB;
             }
             // JZ
             case 0x16 -> {
@@ -967,7 +1111,7 @@ public class Cpu {
 
                 switch (regPair) {
                     case 0x04 -> { // wAB
-                        int base = ((A << 8) + B);
+                        int base = ((A << 8) | B);
                         switch (regOffset) {
                             case 0x00 -> { // offset A
                                 int addr = (base + A) & 0xFFFF;
@@ -1013,7 +1157,7 @@ public class Cpu {
                         }
                     }
                     case 0x05 -> { // wCD
-                        int base = ((C << 8) + D);
+                        int base = ((C << 8) | D);
                         switch (regOffset) {
                             case 0x00 -> { // offset A
                                 int addr = (base + A) & 0xFFFF;
@@ -1366,19 +1510,19 @@ public class Cpu {
                     case 0x04 -> {
                         switch (regB) {
                             case 0x00 -> {
-                                A = RAM.read((A<<8) + B);
+                                A = RAM.read((A<< 8) | B);
                                 checkZero(A);
                             }
                             case 0x01 -> {
-                                B = RAM.read((A<<8) + B);
+                                B = RAM.read((A<< 8) | B);
                                 checkZero(B);
                             }
                             case 0x02 -> {
-                                C = RAM.read((A<<8) + B);
+                                C = RAM.read((A<< 8) | B);
                                 checkZero(C);
                             }
                             case 0x03 -> {
-                                D = RAM.read((A<<8) + B);
+                                D = RAM.read((A<< 8) | B);
                                 checkZero(D);
                             }
 
@@ -1388,19 +1532,19 @@ public class Cpu {
                     case 0x05 -> {
                         switch (regB) {
                             case 0x00 -> {
-                                A = RAM.read((C<<8) + D);
+                                A = RAM.read((C<< 8) | D);
                                 checkZero(A);
                             }
                             case 0x01 -> {
-                                B = RAM.read((C<<8) + D);
+                                B = RAM.read((C<< 8) | D);
                                 checkZero(B);
                             }
                             case 0x02 -> {
-                                C = RAM.read((C<<8) + D);
+                                C = RAM.read((C<< 8) | D);
                                 checkZero(C);
                             }
                             case 0x03 -> {
-                                D = RAM.read((C<<8) + D);
+                                D = RAM.read((C<< 8) | D);
                                 checkZero(D);
                             }
 
@@ -1421,10 +1565,10 @@ public class Cpu {
                     case 0x00 -> {
                         switch (regB) {
                             case 0x04 -> {
-                                RAM.write(A, (A<<8) + B);
+                                RAM.write(A, (A<< 8) | B);
                             }
                             case 0x05 -> {
-                                RAM.write(A, (C<<8) + D);
+                                RAM.write(A, (C<< 8) | D);
                             }
 
                             default -> throw new RuntimeException("INVALID REGISTER");
@@ -1433,10 +1577,10 @@ public class Cpu {
                     case 0x01 -> {
                         switch (regB) {
                             case 0x04 -> {
-                                RAM.write(B, (A<<8) + B);
+                                RAM.write(B, (A<< 8) | B);
                             }
                             case 0x05 -> {
-                                RAM.write(B, (C<<8) + D);
+                                RAM.write(B, (C<< 8) | D);
                             }
 
                             default -> throw new RuntimeException("INVALID REGISTER");
@@ -1445,10 +1589,10 @@ public class Cpu {
                     case 0x02 -> {
                         switch (regB) {
                             case 0x04 -> {
-                                RAM.write(C, (A<<8) + B);
+                                RAM.write(C, (A<< 8) | B);
                             }
                             case 0x05 -> {
-                                RAM.write(C, (C<<8) + D);
+                                RAM.write(C, (C<< 8) | D);
                             }
 
                             default -> throw new RuntimeException("INVALID REGISTER");
@@ -1457,10 +1601,10 @@ public class Cpu {
                     case 0x03 -> {
                         switch (regB) {
                             case 0x04 -> {
-                                RAM.write(D, (A<<8) + B);
+                                RAM.write(D, (A<< 8) | B);
                             }
                             case 0x05 -> {
-                                RAM.write(D, (C<<8) + D);
+                                RAM.write(D, (C<< 8) | D);
                             }
 
                             default -> throw new RuntimeException("INVALID REGISTER");
@@ -1476,10 +1620,10 @@ public class Cpu {
 
                 switch (reg) {
                     case 0x04 -> {
-                        IP = (A<<8) + B;
+                        IP = (A<< 8) | B;
                     }
                     case 0x05 -> {
-                        IP = (C<<8) + D;
+                        IP = (C<< 8) | D;
                     }
 
                     default -> throw new RuntimeException("INVALID REGISTER");
@@ -1491,9 +1635,9 @@ public class Cpu {
                 int reg = get_byte();
                 switch (reg) {
                     case 0x04 -> {
-                        int dest = (A<<8)+B;
+                        int dest = (A<< 8) | B;
                         // Push IP and BP
-                        push_stack((byte) (IP>>8));
+                        push_stack((byte) (IP>> 8));
                         push_stack((byte) IP);
                         push_stack(BP);
                         // Set base pointer for Arg reference
@@ -1502,9 +1646,9 @@ public class Cpu {
                         IP = dest;
                     }
                     case 0x05 -> {
-                        int dest = (C<<8)+D;
+                        int dest = (C<< 8) | D;
                         // Push IP and BP
-                        push_stack((byte) (IP>>8));
+                        push_stack((byte) (IP>> 8));
                         push_stack((byte) IP);
                         push_stack(BP);
                         // Set base pointer for Arg reference
@@ -1524,7 +1668,7 @@ public class Cpu {
 
                 switch (reg) {
                     case 0x04 -> {
-                        int temp_16 = (A<<8)+B;
+                        int temp_16 = (A<< 8) | B;
                         temp_16 += imm;
                         A = (byte) temp_16>>8;
                         B = (byte) temp_16;
@@ -1533,7 +1677,7 @@ public class Cpu {
 
                     }
                     case 0x05 -> {
-                        int temp_16 = (C<<8)+D;
+                        int temp_16 = (C<< 8) | D;
                         temp_16 += imm;
                         C = (byte) temp_16>>8;
                         D = (byte) temp_16;
@@ -1551,7 +1695,7 @@ public class Cpu {
 
                 switch (reg) {
                     case 0x04 -> {
-                        int temp_16 = (A<<8)+B;
+                        int temp_16 = (A<< 8) | B;
                         temp_16++;
                         A = (byte) temp_16>>8;
                         B = (byte) temp_16;
@@ -1560,7 +1704,7 @@ public class Cpu {
 
                     }
                     case 0x05 -> {
-                        int temp_16 = (C<<8)+D;
+                        int temp_16 = (C<< 8) | D;
                         temp_16++;
                         C = (byte) temp_16>>8;
                         D = (byte) temp_16;
@@ -1578,7 +1722,7 @@ public class Cpu {
 
                 switch (reg) {
                     case 0x04 -> {
-                        int temp_16 = (A<<8)+B;
+                        int temp_16 = (A<< 8) | B;
                         temp_16--;
                         A = (byte) temp_16>>8;
                         B = (byte) temp_16;
@@ -1587,7 +1731,7 @@ public class Cpu {
 
                     }
                     case 0x05 -> {
-                        int temp_16 = (C<<8)+D;
+                        int temp_16 = (C<< 8) | D;
                         temp_16--;
                         C = (byte) temp_16>>8;
                         D = (byte) temp_16;
@@ -1917,4 +2061,135 @@ public class Cpu {
         System.out.println("+----------+");
     }
 
+    public String getInstructionName(int opcode) {
+        return switch (opcode) {
+            case 0x00 -> "NOP";
+
+            // MOV / CPY
+            case 0x01 -> "MOVA";
+            case 0x02 -> "MOVB";
+            case 0x03 -> "MOVC";
+            case 0x04 -> "MOVD";
+            case 0x05 -> "CPY";
+
+            // MEMORY
+            case 0x06 -> "STR";
+            case 0x07 -> "LDR";
+
+            // MATH
+            case 0x08 -> "ADD";
+            case 0x09 -> "SUB";
+            case 0x0A -> "INC";
+            case 0x0B -> "DEC";
+            case 0x0C -> "ADC";
+            case 0x0D -> "SBB";
+            case 0x0E -> "NEG";
+            case 0x0F -> "FLP";
+
+            // STACK
+            case 0x10 -> "PSHI";
+            case 0x11 -> "PSHR";
+            case 0x12 -> "POP";
+
+            // JUMP / CALLS
+            case 0x13 -> "JMP";
+            case 0x14 -> "CALL";
+            case 0x15 -> "RET";
+            case 0x16 -> "JZ";
+            case 0x17 -> "JNZ";
+
+            // HALT
+            case 0x18 -> "HLT";
+
+            // LESS
+            case 0x19 -> "JL";
+            case 0x1A -> "JNL";
+
+            // STATUS FLAGS
+            case 0x1B -> "SETL";
+            case 0x1C -> "CLRL";
+            case 0x1D -> "SETZ";
+            case 0x1E -> "CLRZ";
+            case 0x1F -> "SETN";
+            case 0x20 -> "CLRN";
+            case 0x21 -> "SETE";
+            case 0x22 -> "CLRE";
+            case 0x23 -> "SETC";
+            case 0x24 -> "CLRC";
+
+            // LOGIC
+            case 0x25 -> "AND";
+            case 0x26 -> "OR";
+            case 0x27 -> "XOR";
+            case 0x28 -> "NOT";
+
+            // EQUAL / CONDITIONAL
+            case 0x29 -> "JE";
+            case 0x2A -> "JNE";
+
+            // LEA
+            case 0x2C -> "LEA";
+
+            // PRINT
+            case 0x2D -> "PRNI";
+            case 0x2E -> "PRNR";
+            case 0x2F -> "ENPR";
+
+            // CARRY CONDITIONAL
+            case 0x30 -> "JC";
+            case 0x31 -> "JNC";
+
+            // NEGATIVE CONDITIONAL
+            case 0x32 -> "JN";
+            case 0x33 -> "JNN";
+
+            // GREATER CONDITIONAL
+            case 0x34 -> "JG";
+            case 0x35 -> "JNGS";
+
+            // BP RELATIVE
+            case 0x36 -> "IBPR";
+
+            // LOAD WITH OFFSET
+            case 0x37 -> "LDRO";
+
+            // WIDE (16-bit) OPERATIONS
+            case 0x38 -> "MOVW";
+            case 0x39 -> "PSHW";
+            case 0x3A -> "POPW";
+            case 0x3B -> "LDW";
+            case 0x3C -> "STW";
+            case 0x3D -> "JMPW";
+            case 0x3E -> "CALW";
+            case 0x3F -> "ADDW";
+            case 0x40 -> "INCW";
+            case 0x41 -> "DECW";
+
+            // COMPARE / FLAGS
+            case 0x42 -> "CMP";
+            case 0x43 -> "SETG";
+            case 0x44 -> "CLRG";
+
+            // CONTINUED WIDE OPERATIONS
+            case 0x45 -> "IBPW";
+
+            default -> "UNKNOWN";
+        };
+    }
+
+    private int peek_byte() {
+        return RAM.read(IP); // read memory at current IP
+    }
+
+    // Peek byte with offset
+    private int peek_byte(int offset) {
+        return RAM.read(IP + offset);
+    }
+
+    // Peek 16-bit little endian
+    private int peek_word(int offset) {
+        int low = peek_byte(offset);
+        int high = peek_byte(offset + 1);
+        return (high << 8) | low;
+    }
 }
