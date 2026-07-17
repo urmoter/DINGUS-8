@@ -1,6 +1,4 @@
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,6 +13,13 @@ import java.io.IOException;
 */
 
 // 4/9/26, it's over..?
+
+/*
+    7/17/26, FUCKKKKK, well it's not over! let's make the registers a list to fix those fuckass 4x4 switches :dominictrue:
+    Oh and potential C# rewrite, maybe in another branch? :thonk:
+
+    that was quicker than i thought...
+ */
 
 enum OpcodeType {
     NOP,
@@ -42,11 +47,8 @@ enum OpcodeType {
 
 public class Cpu {
     private final Memory RAM = new Memory();
-    private int A = 0;
-    private int B = 0;
-    private int C = 0;
-    private int D = 0;
     private int S = 0;
+    private int[] registers = new int[4]; // [A, B, C, D]
     private int IP;
     private int SP = 0xFF;
     private int BP = SP;
@@ -117,10 +119,10 @@ public class Cpu {
         // Update the ObservableList with all 8 registers
         Platform.runLater(() -> {
             registerStrings.setAll(
-                    String.format("A: 0x%02X", A),
-                    String.format("B: 0x%02X", B),
-                    String.format("C: 0x%02X", C),
-                    String.format("D: 0x%02X", D),
+                    String.format("A: 0x%02X", registers[0]),
+                    String.format("B: 0x%02X", registers[1]),
+                    String.format("C: 0x%02X", registers[2]),
+                    String.format("D: 0x%02X", registers[3]),
                     String.format("IP: 0x%04X", IP),
                     String.format("SP: 0x%02X", SP),
                     String.format("BP: 0x%02X", BP)
@@ -325,321 +327,113 @@ public class Cpu {
     }
 
     private void exec_MOV(int opcode) {
-        switch (opcode) {
-            // MOVA
-            case 0x01 -> {A = get_byte(); checkZero(A); }
-            // MOVB
-            case 0x02 -> {B = get_byte(); checkZero(B); }
-            // MOVC
-            case 0x03 -> {C = get_byte(); checkZero(C); }
-            // MOVD
-            case 0x04 -> {D = get_byte(); checkZero(D); }
+        if (opcode < 0x05) {
+            // MOV(A-D)
+            registers[opcode - 1] = get_byte();
+            checkZero(registers[opcode - 1]);
+        } else {
             // CPY
-            case 0x05 -> {
-                int regA = get_byte();
-                int regB = get_byte();
-
-                switch (regA) {
-                    case 0x00 -> {
-                        switch (regB) {
-                            case 0x00 -> {checkZero(A); }
-                            case 0x01 -> {B = A; checkZero(B); }
-                            case 0x02 -> {C = A; checkZero(C); }
-                            case 0x03 -> {D = A; checkZero(D); }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x01 -> {
-                        switch (regB) {
-                            case 0x00 -> {A = B; checkZero(A); }
-                            case 0x01 -> {checkZero(B); }
-                            case 0x02 -> {C = B; checkZero(C); }
-                            case 0x03 -> {D = B; checkZero(D); }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x02 -> {
-                        switch (regB) {
-                            case 0x00 -> {A = C; checkZero(A); }
-                            case 0x01 -> {B = C; checkZero(B); }
-                            case 0x02 -> {checkZero(C); }
-                            case 0x03 -> {D = C; checkZero(D); }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x03 -> {
-                        switch (regB) {
-                            case 0x00 -> {A = D; checkZero(A); }
-                            case 0x01 -> {B = D; checkZero(B); }
-                            case 0x02 -> {C = D; checkZero(C); }
-                            case 0x03 -> {checkZero(D); }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                }
-            }
+            int regAindex = get_byte();
+            int regBindex = get_byte();
+            registers[regBindex] = registers[regAindex];
+            checkZero(registers[regBindex]);
         }
     }
 
     private void exec_MEM(int opcode) {
-        switch (opcode) {
+        if (opcode == 6) {
             // STR
-            case 0x06 -> {
-                int reg = get_byte();
-                int addr = (get_byte() + (get_byte() << 8));
+            int regIndex = get_byte();
+            int addr = (get_byte() + (get_byte() << 8));
 
-                switch (reg) {
-                    case 0x00 -> {RAM.write(A, addr); checkZero(RAM.read(addr));}
-                    case 0x01 -> {RAM.write(B, addr); checkZero(RAM.read(addr));}
-                    case 0x02 -> {RAM.write(C, addr); checkZero(RAM.read(addr));}
-                    case 0x03 -> {RAM.write(D, addr); checkZero(RAM.read(addr));}
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
-            }
-            // LDR
-            case 0x07 -> {
-                int addr = (get_byte() + (get_byte() << 8));
-                int reg = get_byte();
+            RAM.write(registers[regIndex], addr);
+            checkZero(registers[regIndex]);
+        } else {
+            int addr = (get_byte() + (get_byte() << 8));
+            int regIndex = get_byte();
 
-                switch (reg) {
-                    case 0x00 -> {A = RAM.read(addr); checkZero(A); }
-                    case 0x01 -> {B = RAM.read(addr); checkZero(B); }
-                    case 0x02 -> {C = RAM.read(addr); checkZero(C); }
-                    case 0x03 -> {D = RAM.read(addr); checkZero(D); }
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
-            }
+            registers[regIndex] = RAM.read(addr);
+            checkZero(registers[regIndex]);
         }
     }
 
     private void exec_MTH(int opcode) {
-
-        int carry = ((S & 0x10) != 0x00) ? 1 : 0;
-        int negative = ((S & 0x04) != 0x00) ? 1 : 0;
         switch (opcode) {
             // ADD
             case 0x08 -> {
-                int regA = get_byte();
-                int regB = get_byte();
+                int regAindex = get_byte();
+                int regBindex = get_byte();
 
-                switch (regA) {
-                    case 0x00 -> {
-                        switch (regB) {
-                            case 0x00 -> {A += (byte) A; checkZero(A);  checkCarry(A);}
-                            case 0x01 -> {A += (byte) B; checkZero(A);  checkCarry(A);}
-                            case 0x02 -> {A += (byte) C; checkZero(A);  checkCarry(A);}
-                            case 0x03 -> {A += (byte) D; checkZero(A);  checkCarry(A);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x01 -> {
-                        switch (regB) {
-                            case 0x00 -> {B += (byte) A; checkZero(B);  checkCarry(B);}
-                            case 0x01 -> {B += (byte) B; checkZero(B);  checkCarry(B);}
-                            case 0x02 -> {B += (byte) C; checkZero(B);  checkCarry(B);}
-                            case 0x03 -> {B += (byte) D; checkZero(B);  checkCarry(B);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x02 -> {
-                        switch (regB) {
-                            case 0x00 -> {C += (byte) A; checkZero(C);  checkCarry(C);}
-                            case 0x01 -> {C += (byte) B; checkZero(C);  checkCarry(C);}
-                            case 0x02 -> {C += (byte) C; checkZero(C);  checkCarry(C);}
-                            case 0x03 -> {C += (byte) D; checkZero(C);  checkCarry(C);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x03 -> {
-                        switch (regB) {
-                            case 0x00 -> {D += (byte) A; checkZero(D);  checkCarry(D);}
-                            case 0x01 -> {D += (byte) B; checkZero(D);  checkCarry(D);}
-                            case 0x02 -> {D += (byte) C; checkZero(D);  checkCarry(D);}
-                            case 0x03 -> {D += (byte) D; checkZero(D);  checkCarry(D);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
+                registers[regAindex] += registers[regBindex];
+                checkZero(registers[regAindex]);
+                checkCarry(registers[regAindex]);
+                registers[regAindex] &= 0xFF;
             }
             // SUB
             case 0x09 -> {
-                int regA = get_byte();
-                int regB = get_byte();
+                int regAindex = get_byte();
+                int regBindex = get_byte();
 
-                switch (regA) {
-                    case 0x00 -> {
-                        switch (regB) {
-                            case 0x00 -> {A -= (byte) A; checkZero(A);  checkNegative(A);}
-                            case 0x01 -> {A -= (byte) B; checkZero(A);  checkNegative(A);}
-                            case 0x02 -> {A -= (byte) C; checkZero(A);  checkNegative(A);}
-                            case 0x03 -> {A -= (byte) D; checkZero(A);  checkNegative(A);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x01 -> {
-                        switch (regB) {
-                            case 0x00 -> {B -= (byte) A; checkZero(B);  checkNegative(B);}
-                            case 0x01 -> {B -= (byte) B; checkZero(B);  checkNegative(B);}
-                            case 0x02 -> {B -= (byte) C; checkZero(B);  checkNegative(B);}
-                            case 0x03 -> {B -= (byte) D; checkZero(B);  checkNegative(B);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x02 -> {
-                        switch (regB) {
-                            case 0x00 -> {C -= (byte) A; checkZero(C);  checkNegative(C);}
-                            case 0x01 -> {C -= (byte) B; checkZero(C);  checkNegative(C);}
-                            case 0x02 -> {C -= (byte) C; checkZero(C);  checkNegative(C);}
-                            case 0x03 -> {C -= (byte) D; checkZero(C);  checkNegative(C);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x03 -> {
-                        switch (regB) {
-                            case 0x00 -> {D -= (byte) A; checkZero(D);  checkNegative(D);}
-                            case 0x01 -> {D -= (byte) B; checkZero(D);  checkNegative(D);}
-                            case 0x02 -> {D -= (byte) C; checkZero(D);  checkNegative(D);}
-                            case 0x03 -> {D -= (byte) D; checkZero(D);  checkNegative(D);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
+                registers[regAindex] -= registers[regBindex];
+                checkZero(registers[regAindex]);
+                checkNegative(registers[regAindex]);
+                registers[regAindex] &= 0xFF;
             }
             // INC
             case 0x0A -> {
-                int reg = get_byte();
-                switch (reg) {
-                    case 0x00 -> {A++; A = (byte) A; checkZero(A);  checkCarry(A);}
-                    case 0x01 -> {B++; B = (byte) B; checkZero(B);  checkCarry(B);}
-                    case 0x02 -> {C++; C = (byte) C; checkZero(C);  checkCarry(C);}
-                    case 0x03 -> {D++; D = (byte) D; checkZero(D);  checkCarry(D);}
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
+                int regIndex = get_byte();
+                registers[regIndex]++;
+                checkZero(registers[regIndex]);
+                checkCarry(registers[regIndex]);
+                registers[regIndex] &= 0xFF;
             }
             // DEC
             case 0x0B -> {
-                int reg = get_byte();
-                switch (reg) {
-                    case 0x00 -> {A--; A = (byte) A; checkZero(A);  checkNegative(A);}
-                    case 0x01 -> {B--; B = (byte) B; checkZero(B);  checkNegative(B);}
-                    case 0x02 -> {C--; C = (byte) C; checkZero(C);  checkNegative(C);}
-                    case 0x03 -> {D--; D = (byte) D; checkZero(D);  checkNegative(D);}
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
+                int regIndex = get_byte();
+                registers[regIndex]--;
+                checkZero(registers[regIndex]);
+                checkNegative(registers[regIndex]);
+                registers[regIndex] &= 0xFF;
             }
             // ADC
             case 0x0C -> {
-                int regA = get_byte();
-                int regB = get_byte();
+                int carry = ((S & 0x10) != 0x00) ? 1 : 0;
+                int regAindex = get_byte();
+                int regBindex = get_byte();
 
-                switch (regA) {
-                    case 0x00 -> {
-                        switch (regB) {
-                            case 0x00 -> {A += (byte) A + carry; checkZero(A);  checkCarry(A);}
-                            case 0x01 -> {A += (byte) B + carry; checkZero(A);  checkCarry(A);}
-                            case 0x02 -> {A += (byte) C + carry; checkZero(A);  checkCarry(A);}
-                            case 0x03 -> {A += (byte) D + carry; checkZero(A);  checkCarry(A);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x01 -> {
-                        switch (regB) {
-                            case 0x00 -> {B += (byte) A + carry; checkZero(B);  checkCarry(B);}
-                            case 0x01 -> {B += (byte) B + carry; checkZero(B);  checkCarry(B);}
-                            case 0x02 -> {B += (byte) C + carry; checkZero(B);  checkCarry(B);}
-                            case 0x03 -> {B += (byte) D + carry; checkZero(B);  checkCarry(B);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x02 -> {
-                        switch (regB) {
-                            case 0x00 -> {C += (byte) A + carry; checkZero(C);  checkCarry(C);}
-                            case 0x01 -> {C += (byte) B + carry; checkZero(C);  checkCarry(C);}
-                            case 0x02 -> {C += (byte) C + carry; checkZero(C);  checkCarry(C);}
-                            case 0x03 -> {C += (byte) D + carry; checkZero(C);  checkCarry(C);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x03 -> {
-                        switch (regB) {
-                            case 0x00 -> {D += (byte) A + carry; checkZero(D);  checkCarry(D);}
-                            case 0x01 -> {D += (byte) B + carry; checkZero(D);  checkCarry(D);}
-                            case 0x02 -> {D += (byte) C + carry; checkZero(D);  checkCarry(D);}
-                            case 0x03 -> {D += (byte) D + carry; checkZero(D);  checkCarry(D);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
+                registers[regAindex] += (registers[regAindex] + carry);
+                checkZero(registers[regAindex]);
+                checkCarry(registers[regAindex]);
+                registers[regAindex] &= 0xFF;
             }
             // SBB
             case 0x0D -> {
-                int regA = get_byte();
-                int regB = get_byte();
+                int negative = ((S & 0x04) != 0x00) ? 1 : 0;
+                int regAindex = get_byte();
+                int regBindex = get_byte();
 
-                switch (regA) {
-                    case 0x00 -> {
-                        switch (regB) {
-                            case 0x00 -> {A -= (byte) (A + negative); checkZero(A);  checkNegative(A);}
-                            case 0x01 -> {A -= (byte) (B + negative); checkZero(A);  checkNegative(A);}
-                            case 0x02 -> {A -= (byte) (C + negative); checkZero(A);  checkNegative(A);}
-                            case 0x03 -> {A -= (byte) (D + negative); checkZero(A);  checkNegative(A);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x01 -> {
-                        switch (regB) {
-                            case 0x00 -> {B -= (byte) (A + negative); checkZero(B);  checkNegative(B);}
-                            case 0x01 -> {B -= (byte) (B + negative); checkZero(B);  checkNegative(B);}
-                            case 0x02 -> {B -= (byte) (C + negative); checkZero(B);  checkNegative(B);}
-                            case 0x03 -> {B -= (byte) (D + negative); checkZero(B);  checkNegative(B);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x02 -> {
-                        switch (regB) {
-                            case 0x00 -> {C -= (byte) (A + negative); checkZero(C);  checkNegative(C);}
-                            case 0x01 -> {C -= (byte) (B + negative); checkZero(C);  checkNegative(C);}
-                            case 0x02 -> {C -= (byte) (C + negative); checkZero(C);  checkNegative(C);}
-                            case 0x03 -> {C -= (byte) (D + negative); checkZero(C);  checkNegative(C);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x03 -> {
-                        switch (regB) {
-                            case 0x00 -> {D -= (byte) (A + negative); checkZero(D);  checkNegative(D);}
-                            case 0x01 -> {D -= (byte) (B + negative); checkZero(D);  checkNegative(D);}
-                            case 0x02 -> {D -= (byte) (C + negative); checkZero(D);  checkNegative(D);}
-                            case 0x03 -> {D -= (byte) (D + negative); checkZero(D);  checkNegative(D);}
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
+                registers[regAindex] -= (registers[regAindex] + negative);
+                checkZero(registers[regAindex]);
+                checkNegative(registers[regAindex]);
+                registers[regAindex] &= 0xFF;
             }
             // NEG
             case 0x0E -> {
-                int reg = get_byte();
-                switch (reg) {
-                    case 0x00 -> {A = (byte) ~A + 1; checkZero(A);  checkNegative(A);}
-                    case 0x01 -> {B = (byte) ~B + 1; checkZero(B);  checkNegative(B);}
-                    case 0x02 -> {C = (byte) ~C + 1; checkZero(C);  checkNegative(C);}
-                    case 0x03 -> {D = (byte) ~D + 1; checkZero(D);  checkNegative(D);}
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
+                int regIndex = get_byte();
+
+                registers[regIndex] = (~registers[regIndex] + 1);
+                checkZero(registers[regIndex]);
+                checkNegative(registers[regIndex]);
+                registers[regIndex] &= 0xFF;
             }
             // FLP
             case 0x0F -> {
-                int reg = get_byte();
-                switch (reg) {
-                    case 0x00 -> {A = flip_byte((byte) A); checkZero(A);  checkNegative(A);}
-                    case 0x01 -> {B = flip_byte((byte) B); checkZero(B);  checkNegative(B);}
-                    case 0x02 -> {C = flip_byte((byte) C); checkZero(C);  checkNegative(C);}
-                    case 0x03 -> {D = flip_byte((byte) D); checkZero(D);  checkNegative(D);}
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
+                int regIndex = get_byte();
+
+                registers[regIndex] = flip_byte((byte) registers[regIndex]);
+                checkZero(registers[regIndex]);
+                checkNegative(registers[regIndex]);
+                registers[regIndex] &= 0xFF;
             }
         }
     }
@@ -653,25 +447,15 @@ public class Cpu {
             }
             // PSHR
             case 0x11 -> {
-                int reg = get_byte();
-                switch (reg) {
-                    case 0x00 -> push_stack(A);
-                    case 0x01 -> push_stack(B);
-                    case 0x02 -> push_stack(C);
-                    case 0x03 -> push_stack(D);
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
+                int regIndex = get_byte();
+                push_stack(registers[regIndex]);
             }
             // POP
             case 0x12 -> {
-                int reg = get_byte();
-                switch (reg) {
-                    case 0x00 -> {A = pop_stack(); checkZero(A); }
-                    case 0x01 -> {B = pop_stack(); checkZero(B); }
-                    case 0x02 -> {C = pop_stack(); checkZero(C); }
-                    case 0x03 -> {D = pop_stack(); checkZero(D); }
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }}
+                int regIndex = get_byte();
+                registers[regIndex] = pop_stack();
+                checkZero(registers[regIndex]);
+            }
         }
     }
 
@@ -720,10 +504,10 @@ public class Cpu {
     private void exec_END() {
         // END
         S |= 0x80;
-        System.out.println("%A: " + String.format("0x%02X", A));
-        System.out.println("%B: " + String.format("0x%02X", B));
-        System.out.println("%C: " + String.format("0x%02X", C));
-        System.out.println("%D: " + String.format("0x%02X", D));
+        System.out.println("%A: " + String.format("0x%02X", registers[0]));
+        System.out.println("%B: " + String.format("0x%02X", registers[1]));
+        System.out.println("%C: " + String.format("0x%02X", registers[2]));
+        System.out.println("%D: " + String.format("0x%02X", registers[3]));
         System.out.println("%S: " + String.format("0x%02X", S));
         System.out.println("@IP: " + String.format("0x%04X", (IP - 1)));
         System.out.println("%SP: " + String.format("0x%02X", SP));
@@ -779,280 +563,30 @@ public class Cpu {
         switch (opcode) {
             // AND
             case 0x25 -> {
-                int regA = get_byte();
-                int regB = get_byte();
-
-                switch (regA) {
-                    case 0x00 -> {
-                        switch (regB) {
-                            case 0x00 -> {checkZero(A); }
-                            case 0x01 -> {
-                                A &= B;
-                                checkZero(A);
-
-                            }
-                            case 0x02 -> {
-                                A &= C;
-                                checkZero(A);
-
-                            }
-                            case 0x03 -> {
-                                A &= D;
-                                checkZero(A);
-
-                            }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x01 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                B &= A;
-                                checkZero(B);
-                            }
-                            case 0x01 -> {checkZero(B); }
-                            case 0x02 -> {
-                                B &= C;
-                                checkZero(B);
-                            }
-                            case 0x03 -> {
-                                B &= D;
-                                checkZero(B);
-                            }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x02 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                C &= A;
-                                checkZero(C);
-                            }
-                            case 0x01 -> {
-                                C &= B;
-                                checkZero(C);
-                            }
-                            case 0x02 -> {checkZero(C); }
-                            case 0x03 -> {
-                                C &= D;
-                                checkZero(C);
-                            }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x03 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                D &= A;
-                                checkZero(D);
-                            }
-                            case 0x01 -> {
-                                D &= B;
-                                checkZero(D);
-                            }
-                            case 0x02 -> {
-                                D &= C;
-                                checkZero(D);
-                            }
-                            case 0x03 -> {checkZero(D); }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                }
+                int regAindex = get_byte();
+                int regBindex = get_byte();
+                registers[regAindex] &= registers[regBindex];
+                checkZero(registers[regAindex]);
             }
             // OR
             case 0x26 -> {
-                int regA = get_byte();
-                int regB = get_byte();
-
-                switch (regA) {
-                    case 0x00 -> {
-                        switch (regB) {
-                            case 0x00 -> {checkZero(A); }
-                            case 0x01 -> {
-                                A |= B;
-                                checkZero(A);
-
-                            }
-                            case 0x02 -> {
-                                A |= C;
-                                checkZero(A);
-
-                            }
-                            case 0x03 -> {
-                                A |= D;
-                                checkZero(A);
-
-                            }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x01 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                B |= A;
-                                checkZero(B);
-
-                            }
-                            case 0x01 -> {checkZero(B); }
-                            case 0x02 -> {
-                                B |= C;
-                                checkZero(B);
-
-                            }
-                            case 0x03 -> {
-                                B |= D;
-                                checkZero(B);
-
-                            }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x02 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                C |= A;
-                                checkZero(C);
-
-                            }
-                            case 0x01 -> {
-                                C |= B;
-                                checkZero(C);
-
-                            }
-                            case 0x02 -> {checkZero(C); }
-                            case 0x03 -> {
-                                C |= D;
-                                checkZero(C);
-
-                            }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x03 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                D |= A;
-                                checkZero(D);
-
-                            }
-                            case 0x01 -> {
-                                D |= B;
-                                checkZero(D);
-
-                            }
-                            case 0x02 -> {
-                                D |= C;
-                                checkZero(D);
-
-                            }
-                            case 0x03 -> {checkZero(D); }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                }
+                int regAindex = get_byte();
+                int regBindex = get_byte();
+                registers[regAindex] |= registers[regBindex];
+                checkZero(registers[regAindex]);
             }
             // XOR
             case 0x27 -> {
-                int regA = get_byte();
-                int regB = get_byte();
-
-                switch (regA) {
-                    case 0x00 -> {
-                        switch (regB) {
-                            case 0x00 -> {checkZero(A); }
-                            case 0x01 -> {
-                                A ^= B;
-                                checkZero(A);
-
-                            }
-                            case 0x02 -> {
-                                A ^= C;
-                                checkZero(A);
-
-                            }
-                            case 0x03 -> {
-                                A ^= D;
-                                checkZero(A);
-
-                            }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x01 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                B ^= A;
-                                checkZero(B);
-
-                            }
-                            case 0x01 -> {checkZero(B); }
-                            case 0x02 -> {
-                                B ^= C;
-                                checkZero(B);
-
-                            }
-                            case 0x03 -> {
-                                B ^= D;
-                                checkZero(B);
-
-                            }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x02 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                C ^= A;
-                                checkZero(C);
-
-                            }
-                            case 0x01 -> {
-                                C ^= B;
-                                checkZero(C);
-
-                            }
-                            case 0x02 -> {checkZero(C); }
-                            case 0x03 -> {
-                                C ^= D;
-                                checkZero(C);
-
-                            }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x03 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                D ^= A;
-                                checkZero(D);
-
-                            }
-                            case 0x01 -> {
-                                D ^= B;
-                                checkZero(D);
-
-                            }
-                            case 0x02 -> {
-                                D ^= C;
-                                checkZero(D);
-
-                            }
-                            case 0x03 -> {checkZero(D); }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                }
+                int regAindex = get_byte();
+                int regBindex = get_byte();
+                registers[regAindex] ^= registers[regBindex];
+                checkZero(registers[regAindex]);
             }
             // NOT
             case 0x28 -> {
-                int reg = get_byte();
-                switch (reg) {
-                    case 0x00 -> {A = ~A; checkZero(A); }
-                    case 0x01 -> {B = ~B; checkZero(B); }
-                    case 0x02 -> {C = ~C; checkZero(C); }
-                    case 0x03 -> {D = ~D; checkZero(D); }
-                }
+                int regAindex = get_byte();
+                registers[regAindex] = ~registers[regAindex];
+                checkZero(registers[regAindex]);
             }
         }
     }
@@ -1080,127 +614,29 @@ public class Cpu {
         switch (opcode) {
             // CLR
             case 0x2B -> {
-                int reg = get_byte();
-                switch (reg) {
-                    case 0x00 -> {
-                        A = 0;
-                        checkZero(A);
-                    }
+                int regindex = get_byte();
 
-                    case 0x01 -> {
-                        B = 0;
-                        checkZero(B);
-                    }
-
-                    case 0x02 -> {
-                        C = 0;
-                        checkZero(C);
-                    }
-
-                    case 0x03 -> {
-                        D = 0;
-                        checkZero(D);
-                    }
-                }
+                registers[regindex] = 0;
+                checkZero(registers[regindex]);
             }
             // LEA
             case 0x2C -> {
                 int regPair = get_byte();   // 0x04 or 0x05 (wAB, wCD)
-                int regOffset = get_byte(); // 0x00-0x03 (A-D) used as offset
-                int regDest = get_byte();   // 0x00-0x03 (A-D) destination
+                int regOffsetIndex = get_byte(); // 0x00-0x03 (A-D) used as offset
+                int regDestIndex = get_byte();   // 0x00-0x03 (A-D) destination
 
                 switch (regPair) {
                     case 0x04 -> { // wAB
-                        int base = ((A << 8) | B);
-                        switch (regOffset) {
-                            case 0x00 -> { // offset A
-                                int addr = (base + A) & 0xFFFF;
-                                switch (regDest) {
-                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
-                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
-                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
-                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
-                                    default -> throw new RuntimeException("INVALID REGISTER");
-                                }
-                            }
-                            case 0x01 -> { // offset B
-                                int addr = (base + B) & 0xFFFF;
-                                switch (regDest) {
-                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
-                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
-                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
-                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
-                                    default -> throw new RuntimeException("INVALID REGISTER");
-                                }
-                            }
-                            case 0x02 -> { // offset C
-                                int addr = (base + C) & 0xFFFF;
-                                switch (regDest) {
-                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
-                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
-                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
-                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
-                                    default -> throw new RuntimeException("INVALID REGISTER");
-                                }
-                            }
-                            case 0x03 -> { // offset D
-                                int addr = (base + D) & 0xFFFF;
-                                switch (regDest) {
-                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
-                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
-                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
-                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
-                                    default -> throw new RuntimeException("INVALID REGISTER");
-                                }
-                            }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
+                        int base = ((registers[0] << 8) | registers[1]);
+                        int addr = (base + registers[regOffsetIndex]);
+                        registers[regDestIndex] = RAM.read(addr);
+                        checkZero(registers[regDestIndex]);
                     }
-                    case 0x05 -> { // wCD
-                        int base = ((C << 8) | D);
-                        switch (regOffset) {
-                            case 0x00 -> { // offset A
-                                int addr = (base + A) & 0xFFFF;
-                                switch (regDest) {
-                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
-                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
-                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
-                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
-                                    default -> throw new RuntimeException("INVALID REGISTER");
-                                }
-                            }
-                            case 0x01 -> { // offset B
-                                int addr = (base + B) & 0xFFFF;
-                                switch (regDest) {
-                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
-                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
-                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
-                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
-                                    default -> throw new RuntimeException("INVALID REGISTER");
-                                }
-                            }
-                            case 0x02 -> { // offset C
-                                int addr = (base + C) & 0xFFFF;
-                                switch (regDest) {
-                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
-                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
-                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
-                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
-                                    default -> throw new RuntimeException("INVALID REGISTER");
-                                }
-                            }
-                            case 0x03 -> { // offset D
-                                int addr = (base + D) & 0xFFFF;
-                                switch (regDest) {
-                                    case 0x00 -> { A = RAM.read(addr); checkZero(A); }
-                                    case 0x01 -> { B = RAM.read(addr); checkZero(B); }
-                                    case 0x02 -> { C = RAM.read(addr); checkZero(C); }
-                                    case 0x03 -> { D = RAM.read(addr); checkZero(D); }
-                                    default -> throw new RuntimeException("INVALID REGISTER");
-                                }
-                            }
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
+                    case 0x05 -> {
+                        int base = ((registers[2] << 8) | registers[3]);
+                        int addr = (base + registers[regOffsetIndex]);
+                        registers[regDestIndex] = RAM.read(addr);
+                        checkZero(registers[regDestIndex]);
                     }
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
@@ -1218,25 +654,9 @@ public class Cpu {
             }
             // PRNR
             case 0x2E -> {
-                int reg = get_byte();
-                switch (reg) {
-                    case 0x00 -> {
-                        RAM.write(A, 0xFFFD);
-                        startPrint();
-                    }
-                    case 0x01 -> {
-                        RAM.write(B, 0xFFFD);
-                        startPrint();
-                    }
-                    case 0x02 -> {
-                        RAM.write(C, 0xFFFD);
-                        startPrint();
-                    }
-                    case 0x03 -> {
-                        RAM.write(D, 0xFFFD);
-                        startPrint();
-                    }
-                }
+                int regIndex = get_byte();
+                RAM.write(registers[regIndex], 0xFFFD);
+                startPrint();
             }
             // ENPR
             case 0x2F -> stopPrint();
@@ -1303,139 +723,19 @@ public class Cpu {
     private void exec_TMP() {
         // IBPR
         int OFFSET = get_byte();
-        int DEST = get_byte();
-        switch (DEST) {
-            case 0x00 -> {A = RAM.read(BP+OFFSET); checkZero(A); }
-            case 0x01 -> {B = RAM.read(BP+OFFSET); checkZero(B); }
-            case 0x02 -> {C = RAM.read(BP+OFFSET); checkZero(C); }
-            case 0x03 -> {D = RAM.read(BP+OFFSET); checkZero(D); }
-        }
+        int DESTIndex = get_byte();
+
+        registers[DESTIndex] = RAM.read(BP+OFFSET);
+        checkZero(registers[DESTIndex]);
     }
 
     private void exec_OFS() {
         int addr = (get_byte() + (get_byte() << 8));
-        int OFFSET = get_byte();
-        int dest = get_byte();
+        int OFFSETIndex = get_byte();
+        int destIndex = get_byte();
 
-        switch (dest) {
-            case 0x00 -> {
-                switch (OFFSET) {
-                    case 0x00 -> {
-                        A = RAM.read(addr+A);
-                        checkZero(A);
-
-                        checkCarry(A);
-                    }
-                    case 0x01 -> {
-                        A = RAM.read(addr+B);
-                        checkZero(A);
-
-                        checkCarry(A);
-                    }
-                    case 0x02 -> {
-                        A = RAM.read(addr+C);
-                        checkZero(A);
-
-                        checkCarry(A);
-                    }
-                    case 0x03 -> {
-                        A = RAM.read(addr+D);
-                        checkZero(A);
-
-                        checkCarry(A);
-                    }
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
-            }
-            case 0x01 -> {
-                switch (OFFSET) {
-                    case 0x00 -> {
-                        B = RAM.read(addr+A);
-                        checkZero(B);
-
-                        checkCarry(B);
-                    }
-                    case 0x01 -> {
-                        B = RAM.read(addr+B);
-                        checkZero(B);
-
-                        checkCarry(B);
-                    }
-                    case 0x02 -> {
-                        B = RAM.read(addr+C);
-                        checkZero(B);
-
-                        checkCarry(B);
-                    }
-                    case 0x03 -> {
-                        B = RAM.read(addr+D);
-                        checkZero(B);
-
-                        checkCarry(B);
-                    }
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
-            }
-            case 0x02 -> {
-                switch (OFFSET) {
-                    case 0x00 -> {
-                        C = RAM.read(addr+A);
-                        checkZero(C);
-
-                        checkCarry(C);
-                    }
-                    case 0x01 -> {
-                        C = RAM.read(addr+B);
-                        checkZero(C);
-
-                        checkCarry(C);
-                    }
-                    case 0x02 -> {
-                        C = RAM.read(addr+C);
-                        checkZero(C);
-
-                        checkCarry(C);
-                    }
-                    case 0x03 -> {
-                        C = RAM.read(addr+D);
-                        checkZero(C);
-
-                        checkCarry(C);
-                    }
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
-            }
-            case 0x03 -> {
-                switch (OFFSET) {
-                    case 0x00 -> {
-                        D = RAM.read(addr+A);
-                        checkZero(D);
-
-                        checkCarry(D);
-                    }
-                    case 0x01 -> {
-                        D = RAM.read(addr+B);
-                        checkZero(D);
-
-                        checkCarry(D);
-                    }
-                    case 0x02 -> {
-                        D = RAM.read(addr+C);
-                        checkZero(D);
-
-                        checkCarry(D);
-                    }
-                    case 0x03 -> {
-                        D = RAM.read(addr+D);
-                        checkZero(D);
-
-                        checkCarry(D);
-                    }
-                    default -> throw new RuntimeException("INVALID REGISTER");
-                }
-            }
-            default -> throw new RuntimeException("INVALID REGISTER");
-        }
+        registers[destIndex] = RAM.read(addr + registers[OFFSETIndex]);
+        checkZero(registers[destIndex]);
     }
 
     private void exec_WID(int opcode) {
@@ -1448,14 +748,10 @@ public class Cpu {
 
                 switch (reg) {
                     case 0x04 -> {
-                        A = hi; B = lo;
-                        checkZero(A);
-                        checkZero(B);
+                        registers[0] = hi; registers[1] = lo;
                     }
                     case 0x05 -> {
-                        C = hi; D = lo;
-                        checkZero(C);
-                        checkZero(D);
+                        registers[2] = hi; registers[3] = lo;
                     }
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
@@ -1467,12 +763,12 @@ public class Cpu {
 
                 switch (reg) {
                     case 0x04 -> {
-                        push_stack(A);
-                        push_stack(B);
+                        push_stack(registers[0]);
+                        push_stack(registers[1]);
                     }
                     case 0x05 -> {
-                        push_stack(C);
-                        push_stack(D);
+                        push_stack(registers[2]);
+                        push_stack(registers[3]);
                     }
 
                     default -> throw new RuntimeException("INVALID REGISTER");
@@ -1485,16 +781,12 @@ public class Cpu {
 
                 switch (reg) {
                     case 0x04 -> {
-                        B = pop_stack();
-                        A = pop_stack();
-                        checkZero(A);
-                        checkZero(B);
+                        registers[1] = pop_stack();
+                        registers[0] = pop_stack();
                     }
                     case 0x05 -> {
-                        C = pop_stack();
-                        D = pop_stack();
-                        checkZero(C);
-                        checkZero(D);
+                        registers[2] = pop_stack();
+                        registers[3] = pop_stack();
                     }
 
                     default -> throw new RuntimeException("INVALID REGISTER");
@@ -1504,52 +796,14 @@ public class Cpu {
             // LDW
             case 0x3B -> {
                 int regA = get_byte();
-                int regB = get_byte();
+                int regBIndex = get_byte();
 
                 switch (regA) {
                     case 0x04 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                A = RAM.read((A<< 8) | B);
-                                checkZero(A);
-                            }
-                            case 0x01 -> {
-                                B = RAM.read((A<< 8) | B);
-                                checkZero(B);
-                            }
-                            case 0x02 -> {
-                                C = RAM.read((A<< 8) | B);
-                                checkZero(C);
-                            }
-                            case 0x03 -> {
-                                D = RAM.read((A<< 8) | B);
-                                checkZero(D);
-                            }
-
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
+                        registers[regBIndex] = RAM.read((registers[0]<<8) | registers[1]);
                     }
                     case 0x05 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                A = RAM.read((C<< 8) | D);
-                                checkZero(A);
-                            }
-                            case 0x01 -> {
-                                B = RAM.read((C<< 8) | D);
-                                checkZero(B);
-                            }
-                            case 0x02 -> {
-                                C = RAM.read((C<< 8) | D);
-                                checkZero(C);
-                            }
-                            case 0x03 -> {
-                                D = RAM.read((C<< 8) | D);
-                                checkZero(D);
-                            }
-
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
+                        registers[regBIndex] = RAM.read((registers[2]<<8) | registers[3]);
                     }
 
                     default -> throw new RuntimeException("INVALID REGISTER");
@@ -1558,58 +812,17 @@ public class Cpu {
 
             // STW
             case 0x3C -> {
-                int regA = get_byte();
+                int regAIndex = get_byte();
                 int regB = get_byte();
 
-                switch (regA) {
-                    case 0x00 -> {
-                        switch (regB) {
-                            case 0x04 -> {
-                                RAM.write(A, (A<< 8) | B);
-                            }
-                            case 0x05 -> {
-                                RAM.write(A, (C<< 8) | D);
-                            }
-
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
+                switch (regB) {
+                    case 0x04 -> {
+                        RAM.write(registers[regAIndex], (registers[0]<<8) | registers[1]);
                     }
-                    case 0x01 -> {
-                        switch (regB) {
-                            case 0x04 -> {
-                                RAM.write(B, (A<< 8) | B);
-                            }
-                            case 0x05 -> {
-                                RAM.write(B, (C<< 8) | D);
-                            }
-
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
+                    case 0x05 -> {
+                        RAM.write(registers[regAIndex], (registers[2]<<8) | registers[3]);
                     }
-                    case 0x02 -> {
-                        switch (regB) {
-                            case 0x04 -> {
-                                RAM.write(C, (A<< 8) | B);
-                            }
-                            case 0x05 -> {
-                                RAM.write(C, (C<< 8) | D);
-                            }
 
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x03 -> {
-                        switch (regB) {
-                            case 0x04 -> {
-                                RAM.write(D, (A<< 8) | B);
-                            }
-                            case 0x05 -> {
-                                RAM.write(D, (C<< 8) | D);
-                            }
-
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
                     default -> throw new RuntimeException("INVALID REGISTER");
                 }
             }
@@ -1620,10 +833,10 @@ public class Cpu {
 
                 switch (reg) {
                     case 0x04 -> {
-                        IP = (A<< 8) | B;
+                        IP = (registers[0]<<8) | registers[1];
                     }
                     case 0x05 -> {
-                        IP = (C<< 8) | D;
+                        IP = (registers[2]<<8) | registers[3];
                     }
 
                     default -> throw new RuntimeException("INVALID REGISTER");
@@ -1635,7 +848,7 @@ public class Cpu {
                 int reg = get_byte();
                 switch (reg) {
                     case 0x04 -> {
-                        int dest = (A<< 8) | B;
+                        int dest = (registers[0]<<8) | registers[1];
                         // Push IP and BP
                         push_stack((byte) (IP>> 8));
                         push_stack((byte) IP);
@@ -1646,7 +859,7 @@ public class Cpu {
                         IP = dest;
                     }
                     case 0x05 -> {
-                        int dest = (C<< 8) | D;
+                        int dest = (registers[2]<<8) | registers[3];
                         // Push IP and BP
                         push_stack((byte) (IP>> 8));
                         push_stack((byte) IP);
@@ -1668,21 +881,23 @@ public class Cpu {
 
                 switch (reg) {
                     case 0x04 -> {
-                        int temp_16 = (A<< 8) | B;
+                        int temp_16 = (registers[0]<<8) | registers[1];
                         temp_16 += imm;
-                        A = (byte) temp_16>>8;
-                        B = (byte) temp_16;
-                        checkZero(A);  checkCarry(A);
-                        checkZero(B);  checkCarry(B);
+                        registers[0] = temp_16>>8;
+                        registers[1] = temp_16;
+
+                        registers[0] &= 0xFF;
+                        registers[1] &= 0xFF;
 
                     }
                     case 0x05 -> {
-                        int temp_16 = (C<< 8) | D;
+                        int temp_16 = (registers[2]<<8) | registers[3];
                         temp_16 += imm;
-                        C = (byte) temp_16>>8;
-                        D = (byte) temp_16;
-                        checkZero(C);  checkCarry(C);
-                        checkZero(D);  checkCarry(D);
+                        registers[2] = temp_16>>8;
+                        registers[3] = temp_16;
+
+                        registers[2] &= 0xFF;
+                        registers[3] &= 0xFF;
                     }
 
                     default -> throw new RuntimeException("INVALID REGISTER");
@@ -1695,21 +910,23 @@ public class Cpu {
 
                 switch (reg) {
                     case 0x04 -> {
-                        int temp_16 = (A<< 8) | B;
+                        int temp_16 = (registers[0]<<8) | registers[1];
                         temp_16++;
-                        A = (byte) temp_16>>8;
-                        B = (byte) temp_16;
-                        checkZero(A);  checkCarry(A);
-                        checkZero(B);  checkCarry(B);
+                        registers[0] = temp_16>>8;
+                        registers[1] = temp_16;
+
+                        registers[0] &= 0xFF;
+                        registers[1] &= 0xFF;
 
                     }
                     case 0x05 -> {
-                        int temp_16 = (C<< 8) | D;
+                        int temp_16 = (registers[2]<<8) | registers[3];
                         temp_16++;
-                        C = (byte) temp_16>>8;
-                        D = (byte) temp_16;
-                        checkZero(C);  checkCarry(C);
-                        checkZero(D);  checkCarry(D);
+                        registers[2] = temp_16>>8;
+                        registers[3] = temp_16;
+
+                        registers[2] &= 0xFF;
+                        registers[3] &= 0xFF;
                     }
 
                     default -> throw new RuntimeException("INVALID REGISTER");
@@ -1722,21 +939,23 @@ public class Cpu {
 
                 switch (reg) {
                     case 0x04 -> {
-                        int temp_16 = (A<< 8) | B;
+                        int temp_16 = (registers[0]<<8) | registers[1];
                         temp_16--;
-                        A = (byte) temp_16>>8;
-                        B = (byte) temp_16;
-                        checkZero(A);  checkNegative(A);
-                        checkZero(B);  checkNegative(B);
+                        registers[0] = temp_16>>8;
+                        registers[1] = temp_16;
+
+                        registers[0] &= 0xFF;
+                        registers[1] &= 0xFF;
 
                     }
                     case 0x05 -> {
-                        int temp_16 = (C<< 8) | D;
+                        int temp_16 = (registers[2]<<8) | registers[3];
                         temp_16--;
-                        C = (byte) temp_16>>8;
-                        D = (byte) temp_16;
-                        checkZero(C);  checkNegative(C);
-                        checkZero(D);  checkNegative(D);
+                        registers[2] = temp_16>>8;
+                        registers[3] = temp_16;
+
+                        registers[2] &= 0xFF;
+                        registers[3] &= 0xFF;
                     }
 
                     default -> throw new RuntimeException("INVALID REGISTER");
@@ -1749,224 +968,22 @@ public class Cpu {
         switch (opcode) {
             // CMP
             case 0x42 -> {
-                int regA = get_byte();
-                int regB = get_byte();
+                int regAIndex = get_byte();
+                int regBIndex = get_byte();
 
-                switch (regA) {
-                    case 0x00 -> {
-                        switch (regB) {
-                            case 0x00 -> S |= 0x08;
-
-                            case 0x01 -> {
-                                if (A == B) {
-                                    S |= FLAG_E; // E
-                                    S &= ~FLAG_L; // L
-                                    S &= ~FLAG_G; // G
-                                } else if (A < B) {
-                                    S &= ~FLAG_E; // E
-                                    S |= FLAG_L; // L
-                                    S &= ~FLAG_G; // G
-                                } else {
-                                    S &= ~FLAG_E; // E
-                                    S &= ~FLAG_L; // L
-                                    S |= FLAG_G; // G
-                                }
-                            }
-                            case 0x02 -> {
-                                if (A == C) {
-                                    S |= 0x08; // E
-                                    S &= 0xFE; // L
-                                    S &= 0xBF; // G
-                                } else if (A < C) {
-                                    S &= 0xF7; // E
-                                    S |= 0x01; // L
-                                    S &= 0xBF; // G
-                                } else {
-                                    S &= 0xF7; // E
-                                    S &= 0xFE; // L
-                                    S |= 0x40; // G
-                                }
-                            }
-                            case 0x03 -> {
-                                if (A == D) {
-                                    S |= 0x08; // E
-                                    S &= 0xFE; // L
-                                    S &= 0xBF; // G
-                                } else if (A < D) {
-                                    S &= 0xF7; // E
-                                    S |= 0x01; // L
-                                    S &= 0xBF; // G
-                                } else {
-                                    S &= 0xF7; // E
-                                    S &= 0xFE; // L
-                                    S |= 0x40; // G
-                                }
-                            }
-
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x01 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                if (B == A) {
-                                    S |= 0x08; // E
-                                    S &= 0xFE; // L
-                                    S &= 0xBF; // G
-                                } else if (B < A) {
-                                    S &= 0xF7; // E
-                                    S |= 0x01; // L
-                                    S &= 0xBF; // G
-                                } else {
-                                    S &= 0xF7; // E
-                                    S &= 0xFE; // L
-                                    S |= 0x40; // G
-                                }
-                            }
-                            case 0x01 -> S |= 0x08;
-
-                            case 0x02 -> {
-                                if (B == C) {
-                                    S |= 0x08; // E
-                                    S &= 0xFE; // L
-                                    S &= 0xBF; // G
-                                } else if (B < C) {
-                                    S &= 0xF7; // E
-                                    S |= 0x01; // L
-                                    S &= 0xBF; // G
-                                } else {
-                                    S &= 0xF7; // E
-                                    S &= 0xFE; // L
-                                    S |= 0x40; // G
-                                }
-                            }
-                            case 0x03 -> {
-                                if (B == D) {
-                                    S |= 0x08; // E
-                                    S &= 0xFE; // L
-                                    S &= 0xBF; // G
-                                } else if (B < D) {
-                                    S &= 0xF7; // E
-                                    S |= 0x01; // L
-                                    S &= 0xBF; // G
-                                } else {
-                                    S &= 0xF7; // E
-                                    S &= 0xFE; // L
-                                    S |= 0x40; // G
-                                }
-                            }
-
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x02 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                if (C == A) {
-                                    S |= 0x08; // E
-                                    S &= 0xFE; // L
-                                    S &= 0xBF; // G
-                                } else if (C < A) {
-                                    S &= 0xF7; // E
-                                    S |= 0x01; // L
-                                    S &= 0xBF; // G
-                                } else {
-                                    S &= 0xF7; // E
-                                    S &= 0xFE; // L
-                                    S |= 0x40; // G
-                                }
-                            }
-                            case 0x01 -> {
-                                if (C == B) {
-                                    S |= 0x08; // E
-                                    S &= 0xFE; // L
-                                    S &= 0xBF; // G
-                                } else if (C < B) {
-                                    S &= 0xF7; // E
-                                    S |= 0x01; // L
-                                    S &= 0xBF; // G
-                                } else {
-                                    S &= 0xF7; // E
-                                    S &= 0xFE; // L
-                                    S |= 0x40; // G
-                                }
-                            }
-                            case 0x02 -> S |= 0x08;
-
-                            case 0x03 -> {
-                                if (C == D) {
-                                    S |= 0x08; // E
-                                    S &= 0xFE; // L
-                                    S &= 0xBF; // G
-                                } else if (C < D) {
-                                    S &= 0xF7; // E
-                                    S |= 0x01; // L
-                                    S &= 0xBF; // G
-                                } else {
-                                    S &= 0xF7; // E
-                                    S &= 0xFE; // L
-                                    S |= 0x40; // G
-                                }
-                            }
-
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
-                    case 0x03 -> {
-                        switch (regB) {
-                            case 0x00 -> {
-                                if (D == A) {
-                                    S |= 0x08; // E
-                                    S &= 0xFE; // L
-                                    S &= 0xBF; // G
-                                } else if (D < A) {
-                                    S &= 0xF7; // E
-                                    S |= 0x01; // L
-                                    S &= 0xBF; // G
-                                } else {
-                                    S &= 0xF7; // E
-                                    S &= 0xFE; // L
-                                    S |= 0x40; // G
-                                }
-                            }
-                            case 0x01 -> {
-                                if (D == B) {
-                                    S |= 0x08; // E
-                                    S &= 0xFE; // L
-                                    S &= 0xBF; // G
-                                } else if (D < B) {
-                                    S &= 0xF7; // E
-                                    S |= 0x01; // L
-                                    S &= 0xBF; // G
-                                } else {
-                                    S &= 0xF7; // E
-                                    S &= 0xFE; // L
-                                    S |= 0x40; // G
-                                }
-                            }
-                            case 0x02 -> {
-                                if (D == C) {
-                                    S |= 0x08; // E
-                                    S &= 0xFE; // L
-                                    S &= 0xBF; // G
-                                } else if (D < C) {
-                                    S &= 0xF7; // E
-                                    S |= 0x01; // L
-                                    S &= 0xBF; // G
-                                } else {
-                                    S &= 0xF7; // E
-                                    S &= 0xFE; // L
-                                    S |= 0x40; // G
-                                }
-                            }
-                            case 0x03 -> S |= 0x08;
-
-                            default -> throw new RuntimeException("INVALID REGISTER");
-                        }
-                    }
+                if (registers[regAIndex] == registers[regBIndex]) {
+                    S |= FLAG_E; // E
+                    S &= ~FLAG_L; // L
+                    S &= ~FLAG_G; // G
+                } else if (registers[regAIndex] < registers[regBIndex]) {
+                    S &= ~FLAG_E; // E
+                    S |= FLAG_L; // L
+                    S &= ~FLAG_G; // G
+                } else {
+                    S &= ~FLAG_E; // E
+                    S &= ~FLAG_L; // L
+                    S |= FLAG_G; // G
                 }
-
-
             }
 
             // SETG
@@ -1982,16 +999,12 @@ public class Cpu {
         int DEST = get_byte();
         switch (DEST) {
             case 0x04 -> {
-                A = RAM.read(BP+OFFSET+1);
-                checkZero(A);
-                B = RAM.read(BP+OFFSET);
-                checkZero(B);
+                registers[0] = RAM.read(BP+OFFSET+1);
+                registers[1] = RAM.read(BP+OFFSET);
             }
             case 0x05 -> {
-                C = RAM.read(BP+OFFSET+1);
-                checkZero(C);
-                D = RAM.read(BP+OFFSET);
-                checkZero(D);
+                registers[2] = RAM.read(BP+OFFSET+1);
+                registers[3] = RAM.read(BP+OFFSET);
             }
             default -> throw new RuntimeException("INVALID REGISTER");
         }
