@@ -188,20 +188,18 @@ public class Cpu {
         // Update GUI
         currentInstructionWithArgs.set(instrWithArgs);
 
-        // Now actually execute
-        int opcode = get_byte();
-        type_exec(opcode, determine_opcode_type(opcode));
-        flushRegisters();
-        updateStackView();
-        updateFlagsView();
-
         // handle terminal output live
         if ((S & FLAG_P) != 0) {
             int value = RAM.read(0xFFFD);
             outputConsumer.accept(Character.toString((char)value));
         }
 
-
+        // Now actually execute
+        int opcode = get_byte();
+        type_exec(opcode, determine_opcode_type(opcode));
+        flushRegisters();
+        updateStackView();
+        updateFlagsView();
     }
 
     public String getCurrentInstruction() {

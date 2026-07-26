@@ -1,0 +1,2 @@
+﻿namespace dingus_8;
+
